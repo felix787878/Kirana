@@ -89,15 +89,15 @@ export default function HasilPage() {
       </section>
 
       <section className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm sm:p-5">
-        <h2 className="font-semibold text-stone-900">Ringkasan semua kategori</h2>
+        <h2 className="font-semibold text-gray-900">Ringkasan semua kategori</h2>
         <ul className="mt-3 space-y-2">
           {ranked.map((row) => (
             <li
               key={row.code}
-              className="flex items-center justify-between text-sm border-b border-stone-100 pb-2 last:border-0"
+              className="flex items-center justify-between border-b border-stone-100 pb-2 text-sm text-gray-900 last:border-0"
             >
-              <span>{row.label}</span>
-              <span className="tabular-nums text-stone-600">{row.score}</span>
+              <span className="text-gray-900">{row.label}</span>
+              <span className="tabular-nums text-gray-900">{row.score}</span>
             </li>
           ))}
         </ul>
@@ -107,12 +107,12 @@ export default function HasilPage() {
         <h2 className="font-semibold text-stone-900">
           Rekomendasi karier (gagasan)
         </h2>
-        <p className="mt-1 text-xs text-stone-500">
+        <p className="mt-1 text-xs text-gray-900">
           Ini contoh jalur karier; diskusikan dengan pembimbing atau guru.
         </p>
-        <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-stone-700">
+        <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-gray-900">
           {jobs.map((j) => (
-            <li key={j}>{j}</li>
+            <li key={j} className="text-gray-900">{j}</li>
           ))}
         </ul>
       </section>
@@ -134,3 +134,4 @@ export default function HasilPage() {
     </div>
   );
 }
+

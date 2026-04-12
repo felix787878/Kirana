@@ -103,14 +103,14 @@ export default function CvMakerPage() {
                   rows={3}
                   value={form[key]}
                   onChange={(e) => update(key, e.target.value)}
-                  className="w-full rounded-lg border border-stone-200 px-3 py-2 text-sm outline-none ring-teal-600 focus:ring-2"
+                  className="w-full rounded-lg border border-stone-200 px-3 py-2 text-sm text-black outline-none ring-teal-600 focus:ring-2"
                 />
               ) : (
                 <input
                   id={key}
                   value={form[key]}
                   onChange={(e) => update(key, e.target.value)}
-                  className="w-full rounded-lg border border-stone-200 px-3 py-2 text-sm outline-none ring-teal-600 focus:ring-2"
+                  className="w-full rounded-lg border border-stone-200 px-3 py-2 text-sm text-black outline-none ring-teal-600 focus:ring-2"
                 />
               )}
             </div>
@@ -135,34 +135,32 @@ export default function CvMakerPage() {
         <div className="space-y-3">
           <h2 className="text-sm font-semibold text-stone-900">Pratinjau</h2>
           <div className="min-h-[420px] rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-            <p className="text-xl font-bold text-teal-800">
+            <p className="text-xl font-bold text-gray-900">
               {form.fullName || "Nama kamu"}
             </p>
-            <p className="mt-1 text-sm text-stone-600">
+            <p className="mt-1 text-sm text-gray-900">
               {[form.age && `Usia: ${form.age}`, form.contact]
                 .filter(Boolean)
                 .join(" · ")}
             </p>
-            <div className="mt-4 space-y-3 text-sm text-stone-800">
+            <div className="mt-4 space-y-3 text-sm text-gray-900">
               <div>
-                <p className="text-xs font-semibold uppercase text-stone-500">
+                <p className="text-xs font-semibold uppercase text-gray-900">
                   Sekolah
                 </p>
-                <p className="whitespace-pre-wrap">{form.school || "—"}</p>
+                <p className="whitespace-pre-wrap text-gray-900">{form.school || "—"}</p>
               </div>
               <div>
-                <p className="text-xs font-semibold uppercase text-stone-500">
+                <p className="text-xs font-semibold uppercase text-gray-900">
                   Hobi
                 </p>
-                <p className="whitespace-pre-wrap">{form.hobbies || "—"}</p>
+                <p className="whitespace-pre-wrap text-gray-900">{form.hobbies || "—"}</p>
               </div>
               <div>
-                <p className="text-xs font-semibold uppercase text-stone-500">
+                <p className="text-xs font-semibold uppercase text-gray-900">
                   Organisasi
                 </p>
-                <p className="whitespace-pre-wrap">
-                  {form.organization || "—"}
-                </p>
+                <p className="whitespace-pre-wrap text-gray-900">`r`n                  {form.organization || "�"}`r`n                </p>
               </div>
             </div>
           </div>
@@ -186,3 +184,6 @@ export default function CvMakerPage() {
     </div>
   );
 }
+
+
+

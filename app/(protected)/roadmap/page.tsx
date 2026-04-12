@@ -126,7 +126,7 @@ export default function RoadmapPage() {
             id="rm-name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full rounded-lg border border-stone-200 px-3 py-2 text-sm outline-none ring-teal-600 focus:ring-2"
+            className="w-full rounded-lg border border-stone-200 px-3 py-2 text-sm text-black outline-none ring-teal-600 focus:ring-2"
             maxLength={80}
             autoComplete="name"
           />
@@ -142,7 +142,7 @@ export default function RoadmapPage() {
             max={18}
             value={age}
             onChange={(e) => setAge(e.target.value)}
-            className="w-full rounded-lg border border-stone-200 px-3 py-2 text-sm outline-none ring-teal-600 focus:ring-2"
+            className="w-full rounded-lg border border-stone-200 px-3 py-2 text-sm text-black outline-none ring-teal-600 focus:ring-2"
           />
         </div>
         <div className="space-y-1">
@@ -156,7 +156,7 @@ export default function RoadmapPage() {
             id="rm-code"
             value={topCategory}
             onChange={(e) => setTopCategory(e.target.value as RiasecCode)}
-            className="w-full rounded-lg border border-stone-200 px-3 py-2 text-sm outline-none ring-teal-600 focus:ring-2 bg-white"
+            className="w-full rounded-lg border border-stone-200 bg-white px-3 py-2 text-sm text-black outline-none ring-teal-600 focus:ring-2"
           >
             {CODES.map((c) => (
               <option key={c} value={c}>
@@ -181,10 +181,10 @@ export default function RoadmapPage() {
 
       {output && (
         <section className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm sm:p-5">
-          <h2 className="text-sm font-semibold text-stone-900">
+          <h2 className="text-sm font-semibold text-gray-900">
             Hasil untuk {name.trim()}
           </h2>
-          <div className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-stone-800">
+          <div className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-gray-900">
             {output}
           </div>
         </section>
@@ -199,3 +199,4 @@ export default function RoadmapPage() {
     </div>
   );
 }
+
