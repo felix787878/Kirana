@@ -70,9 +70,17 @@ export default function RoadmapPage() {
           topCategory,
         }),
       });
-      const data = (await res.json()) as { text?: string; error?: string };
+      const data = (await res.json()) as {
+        text?: string;
+        error?: string;
+        debug?: string;
+      };
       if (!res.ok) {
-        setError(data.error ?? "Permintaan gagal.");
+        const hint =
+          process.env.NODE_ENV === "development" && data.debug
+            ? ` ${data.debug}`
+            : "";
+        setError((data.error ?? "Permintaan gagal.") + hint);
         return;
       }
       setOutput(data.text ?? "");
