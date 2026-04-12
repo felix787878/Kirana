@@ -1,25 +1,14 @@
 # Kirana
 
-**Kirana** adalah aplikasi web berbasis **Next.js** untuk membantu remaja usia **12–18 tahun** (termasuk yang tinggal di lingkungan panti asuhan di Indonesia) mengenal minat karier, merencanakan langkah belajar, dan menyusun CV sederhana. Antarmuka dan konten pengguna menggunakan **Bahasa Indonesia**.
+**Kirana** adalah aplikasi web berbasis **Next.js** untuk membantu remaja usia **12–18 tahun** (termasuk yang tinggal di lingkungan panti asuhan di Indonesia) mengenal minat karier, merencanakan langkah belajar, dan menyusun CV sederhana.
 
 ## Apa saja yang bisa dilakukan?
 
-- **Autentikasi** — Daftar dan masuk dengan **email & kata sandi** (Firebase Authentication).
-- **Tes minat RIASEC** — **30 soal** pilihan ganda; skor dihitung per enam kategori (Realistik, Investigatif, Artistik, Sosial, Enterprising, Konvensional), lalu ditampilkan **dua kategori tertinggi** beserta **ide karier** yang selaras.
-- **Generator peta jalan karier** — Mengirim nama, usia, dan kategori RIASEC utama ke **Google Gemini** lewat API route Next.js; hasil berupa teks rencana karier yang terstruktur.
-- **Pembuat CV** — Form data diri, pratinjau satu halaman, dan **unduh PDF** (`@react-pdf/renderer`).
+- **Tes minat RIASEC**.
+- **Generator peta jalan karier**.
+- **Pembuat CV**.
 
 Data profil, hasil tes, dan isi CV disimpan di **Firestore** per pengguna (berdasarkan UID akun).
-
-## Teknologi
-
-| Bagian | Teknologi |
-|--------|-----------|
-| Framework | Next.js 14 (App Router), TypeScript |
-| Gaya | Tailwind CSS |
-| Backend / data | Firebase (Authentication + Firestore) |
-| AI | Google Gemini API (`@google/generative-ai`) |
-| PDF | `@react-pdf/renderer` |
 
 ## Prasyarat
 
