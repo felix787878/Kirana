@@ -2,26 +2,23 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  input, 
+  textarea, 
+  select {
+    @apply text-stone-950 bg-white border-stone-300;
+    color: #000000 !important;
   }
-}
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: var(--font-geist-sans), system-ui, sans-serif;
-}
+  input::placeholder, 
+  textarea::placeholder {
+    @apply text-stone-500;
+  }
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
+  /* Fokus border agar lebih tegas */
+  input:focus, 
+  textarea:focus {
+    @apply ring-2 ring-teal-600 border-transparent outline-none;
   }
 }
