@@ -1,14 +1,15 @@
 # Kirana
 
-**Kirana** adalah aplikasi web berbasis **Next.js** untuk membantu remaja usia **12–18 tahun** (termasuk yang tinggal di lingkungan panti asuhan di Indonesia) mengenal minat karier, merencanakan langkah belajar, dan menyusun CV sederhana.
+**Kirana** adalah aplikasi web berbasis **Next.js** untuk membantu remaja usia **12–18 tahun** (termasuk yang tinggal di lingkungan panti asuhan di Indonesia) mengenal minat karier, merencanakan langkah belajar, dan menyusun CV.
 
 ## Apa saja yang bisa dilakukan?
 
 - **Tes minat RIASEC**.
 - **Generator peta jalan karier**.
-- **Pembuat CV**.
+- **CV Builder sederhana untuk pelajar (gaya profesional ala RenderCV)**.
 
-Data profil, hasil tes, dan isi CV disimpan di **Firestore** per pengguna (berdasarkan UID akun).
+Data profil, hasil tes, dan data CV disimpan di **Firestore** per pengguna (berdasarkan UID akun).  
+Menu CV dibuat ringkas agar ramah untuk pengguna SMP/SMA dan bisa langsung unduh PDF dari aplikasi.
 
 ## Prasyarat
 

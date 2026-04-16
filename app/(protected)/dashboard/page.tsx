@@ -15,8 +15,8 @@ const cards = [
   },
   {
     href: "/cv-maker",
-    title: "Pembuat CV",
-    desc: "Isi data, lihat pratinjau, unduh PDF satu halaman.",
+    title: "CV Builder",
+    desc: "Input ringkas untuk pelajar, lalu unduh CV PDF langsung.",
     emoji: "📄",
   },
 ] as const;
