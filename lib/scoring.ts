@@ -28,20 +28,26 @@ export function emptyRiasecScores(): RiasecScores {
   };
 }
 
-const optionCategoryByKey = new Map<string, RiasecCode>();
+const optionMetaByKey = new Map<
+  string,
+  { category: RiasecCode; value: number }
+>();
 
 function buildOptionLookup(): void {
-  if (optionCategoryByKey.size > 0) return;
+  if (optionMetaByKey.size > 0) return;
   for (const q of RIASEC_QUESTIONS) {
     for (const opt of q.options) {
-      optionCategoryByKey.set(`${q.id}:${opt.id}`, opt.category);
+      optionMetaByKey.set(`${q.id}:${opt.id}`, {
+        category: opt.category,
+        value: opt.value,
+      });
     }
   }
 }
 
 /**
  * Jawaban: map id soal → id opsi yang dipilih (mis. { 1: "1a", 2: "2b", ... }).
- * Setiap jawaban benar menambah 1 poin ke kategori opsi tersebut.
+ * Setiap jawaban menambah skor sesuai bobot opsi (1..5) ke kategori terkait.
  */
 export function scoreRiasecAnswers(
   answers: Record<number, string>
@@ -52,8 +58,8 @@ export function scoreRiasecAnswers(
   for (const q of RIASEC_QUESTIONS) {
     const chosen = answers[q.id];
     if (!chosen) continue;
-    const cat = optionCategoryByKey.get(`${q.id}:${chosen}`);
-    if (cat) scores[cat] += 1;
+    const meta = optionMetaByKey.get(`${q.id}:${chosen}`);
+    if (meta) scores[meta.category] += meta.value;
   }
 
   return scores;

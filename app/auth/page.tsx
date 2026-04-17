@@ -9,6 +9,7 @@ import {
 } from "firebase/auth";
 import { getFirebaseAuth } from "@/lib/firebase";
 import { useAuth } from "@/components/AuthProvider";
+import { LoaderFive } from "@/components/ui/loader";
 
 type Mode = "login" | "register";
 
@@ -72,8 +73,8 @@ export default function AuthPage() {
 
   if (loading || user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-stone-50">
-        <p className="text-stone-600">Memuat...</p>
+      <div className="flex min-h-screen items-center justify-center bg-[#d9edf4]">
+        <LoaderFive text="Menyiapkan halaman..." />
       </div>
     );
   }

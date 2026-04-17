@@ -1,109 +1,149 @@
-"use client";
+"use client"
 
-import { useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react"
 
-type MorphingTextProps = {
-  texts: string[];
-  className?: string;
-};
+import { cn } from "@/lib/utils"
 
-const MORPH_TIME = 1;
-const COOLDOWN_TIME = 0.4;
+const morphTime = 1.5
+const cooldownTime = 0.5
 
-export function MorphingText({ texts, className }: MorphingTextProps) {
-  const text1Ref = useRef<HTMLSpanElement>(null);
-  const text2Ref = useRef<HTMLSpanElement>(null);
-  const animationFrameRef = useRef<number>();
+const useMorphingText = (texts: string[]) => {
+  const textIndexRef = useRef(0)
+  const morphRef = useRef(0)
+  const cooldownRef = useRef(0)
+  const timeRef = useRef(new Date())
 
-  const safeTexts = useMemo(
-    () => (texts.length > 0 ? texts : [""]),
-    [texts],
-  );
+  const text1Ref = useRef<HTMLSpanElement>(null)
+  const text2Ref = useRef<HTMLSpanElement>(null)
+
+  const setStyles = useCallback(
+    (fraction: number) => {
+      const [current1, current2] = [text1Ref.current, text2Ref.current]
+      if (!current1 || !current2) return
+
+      current2.style.filter = `blur(${Math.min(8 / fraction - 8, 100)}px)`
+      current2.style.opacity = `${Math.pow(fraction, 0.4) * 100}%`
+
+      const invertedFraction = 1 - fraction
+      current1.style.filter = `blur(${Math.min(
+        8 / invertedFraction - 8,
+        100
+      )}px)`
+      current1.style.opacity = `${Math.pow(invertedFraction, 0.4) * 100}%`
+
+      current1.textContent = texts[textIndexRef.current % texts.length]
+      current2.textContent = texts[(textIndexRef.current + 1) % texts.length]
+    },
+    [texts]
+  )
+
+  const doMorph = useCallback(() => {
+    morphRef.current -= cooldownRef.current
+    cooldownRef.current = 0
+
+    let fraction = morphRef.current / morphTime
+
+    if (fraction > 1) {
+      cooldownRef.current = cooldownTime
+      fraction = 1
+    }
+
+    setStyles(fraction)
+
+    if (fraction === 1) {
+      textIndexRef.current++
+    }
+  }, [setStyles])
+
+  const doCooldown = useCallback(() => {
+    morphRef.current = 0
+    const [current1, current2] = [text1Ref.current, text2Ref.current]
+    if (current1 && current2) {
+      current2.style.filter = "none"
+      current2.style.opacity = "100%"
+      current1.style.filter = "none"
+      current1.style.opacity = "0%"
+    }
+  }, [])
 
   useEffect(() => {
-    let textIndex = safeTexts.length - 1;
-    let time = new Date();
-    let morph = 0;
-    let cooldown = COOLDOWN_TIME;
-
-    const doMorph = () => {
-      morph -= cooldown;
-      cooldown = 0;
-
-      let fraction = morph / MORPH_TIME;
-      if (fraction > 1) {
-        cooldown = COOLDOWN_TIME;
-        fraction = 1;
-      }
-
-      const text1 = text1Ref.current;
-      const text2 = text2Ref.current;
-      if (!text1 || !text2) return;
-
-      text2.style.filter = "none";
-      text2.style.opacity = `${Math.pow(fraction, 0.4) * 100}%`;
-
-      const inverseFraction = 1 - fraction;
-      text1.style.filter = "none";
-      text1.style.opacity = `${Math.pow(inverseFraction, 0.4) * 100}%`;
-
-      text1.textContent = safeTexts[textIndex % safeTexts.length];
-      text2.textContent = safeTexts[(textIndex + 1) % safeTexts.length];
-    };
-
-    const doCooldown = () => {
-      morph = 0;
-
-      const text1 = text1Ref.current;
-      const text2 = text2Ref.current;
-      if (!text1 || !text2) return;
-
-      text2.style.filter = "none";
-      text2.style.opacity = "100%";
-
-      text1.style.filter = "none";
-      text1.style.opacity = "0%";
-    };
+    let animationFrameId: number
 
     const animate = () => {
-      animationFrameRef.current = requestAnimationFrame(animate);
+      animationFrameId = requestAnimationFrame(animate)
 
-      const newTime = new Date();
-      const shouldIncrementIndex = cooldown > 0;
-      const dt = (newTime.getTime() - time.getTime()) / 1000;
-      time = newTime;
+      const newTime = new Date()
+      const dt = (newTime.getTime() - timeRef.current.getTime()) / 1000
+      timeRef.current = newTime
 
-      cooldown -= dt;
+      cooldownRef.current -= dt
 
-      if (cooldown <= 0) {
-        if (shouldIncrementIndex) {
-          textIndex += 1;
-        }
-        doMorph();
-      } else {
-        doCooldown();
-      }
-    };
+      if (cooldownRef.current <= 0) doMorph()
+      else doCooldown()
+    }
 
-    animate();
-
+    animate()
     return () => {
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-      }
-    };
-  }, [safeTexts]);
+      cancelAnimationFrame(animationFrameId)
+    }
+  }, [doMorph, doCooldown])
 
-  return (
-    <div className={`relative h-[1.2em] ${className ?? ""}`}>
-      <span
-        ref={text1Ref}
-        className="absolute inset-x-0 top-0 w-full select-none text-center md:text-left"
-      />
-      <span
-        ref={text2Ref}
-        className="absolute inset-x-0 top-0 w-full select-none text-center md:text-left"
-      />
-    </div>
-  );
+  return { text1Ref, text2Ref }
 }
+
+interface MorphingTextProps {
+  className?: string
+  texts: string[]
+}
+
+const Texts: React.FC<Pick<MorphingTextProps, "texts">> = ({ texts }) => {
+  const { text1Ref, text2Ref } = useMorphingText(texts)
+  return (
+    <>
+      <span
+        className="absolute inset-x-0 top-0 m-auto inline-block w-full"
+        ref={text1Ref}
+      />
+      <span
+        className="absolute inset-x-0 top-0 m-auto inline-block w-full"
+        ref={text2Ref}
+      />
+    </>
+  )
+}
+
+const SvgFilters: React.FC = () => (
+  <svg
+    id="filters"
+    className="fixed h-0 w-0"
+    preserveAspectRatio="xMidYMid slice"
+  >
+    <defs>
+      <filter id="threshold">
+        <feColorMatrix
+          in="SourceGraphic"
+          type="matrix"
+          values="1 0 0 0 0
+                  0 1 0 0 0
+                  0 0 1 0 0
+                  0 0 0 255 -140"
+        />
+      </filter>
+    </defs>
+  </svg>
+)
+
+export const MorphingText: React.FC<MorphingTextProps> = ({
+  texts,
+  className,
+}) => (
+  <div
+    className={cn(
+      "relative mx-auto h-16 w-full max-w-3xl text-center font-sans text-[40pt] leading-none font-bold filter-[url(#threshold)_blur(0.6px)] md:h-24 lg:text-[6rem]",
+      className
+    )}
+  >
+    <Texts texts={texts} />
+    <SvgFilters />
+  </div>
+)

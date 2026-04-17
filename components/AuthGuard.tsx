@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useAuth } from "@/components/AuthProvider";
+import { LoaderFive } from "@/components/ui/loader";
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
   const { user, loading, configError } = useAuth();
@@ -25,8 +26,8 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-stone-50">
-        <p className="text-stone-600">Memuat...</p>
+      <div className="flex min-h-screen items-center justify-center bg-[#d9edf4]">
+        <LoaderFive text="Memuat akun..." />
       </div>
     );
   }

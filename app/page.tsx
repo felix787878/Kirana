@@ -7,7 +7,6 @@ import landingAnimation from "./animasi halaman pertama.json";
 import testLogo from "./test_logo.png";
 import cvLogo from "./cv_logo.png";
 import roadmapLogo from "./roadmap_logo.png";
-import { MorphingText } from "@/components/ui/morphing-text";
 
 export default function LandingPage() {
   return (
@@ -40,10 +39,7 @@ export default function LandingPage() {
 
         <div className="order-2 text-center md:text-left">
           <h1 className="max-w-2xl text-4xl font-bold leading-tight text-slate-900 md:text-6xl">
-            <MorphingText
-              texts={["Tes.", "Rencanakan.", "Wujudkan."]}
-              className="min-h-[1.25em]"
-            />
+            Tes. Rencanakan. Wujudkan.
           </h1>
           <p className="mt-5 max-w-2xl text-base leading-relaxed text-slate-700 md:text-xl/relaxed">
             Kenali dirimu lebih dalam dengan Tes Psikologi, susun strategi masa depanmu lewat

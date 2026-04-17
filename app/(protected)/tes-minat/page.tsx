@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -12,26 +13,43 @@ import {
 import { saveRiasecTestResult } from "@/lib/firestore";
 import { useAuth } from "@/components/AuthProvider";
 
+const ANSWER_IMAGE_BY_VALUE: Record<number, string> = {
+  1: "/Sangat_Tidak_Suka.png",
+  2: "/Tidak_Suka.png",
+  3: "/Netral.png",
+  4: "/Suka.png",
+  5: "/Sangat_Suka.png",
+};
+
+function shuffleQuestions() {
+  const arr = [...RIASEC_QUESTIONS];
+  for (let i = arr.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
 export default function TesMinatPage() {
   const { user } = useAuth();
   const router = useRouter();
+  const orderedQuestions = useMemo(() => shuffleQuestions(), []);
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const q = RIASEC_QUESTIONS[index];
+  const q = orderedQuestions[index];
   const progress = useMemo(
-    () => Math.round(((index + 1) / RIASEC_QUESTIONS.length) * 100),
-    [index]
+    () => Math.round(((index + 1) / orderedQuestions.length) * 100),
+    [index, orderedQuestions.length]
   );
 
   function selectOption(optionId: string) {
     setAnswers((prev) => ({ ...prev, [q.id]: optionId }));
-  }
-
-  function goNext() {
-    if (index < RIASEC_QUESTIONS.length - 1) setIndex((i) => i + 1);
+    if (index < orderedQuestions.length - 1) {
+      setIndex((i) => Math.min(i + 1, orderedQuestions.length - 1));
+    }
   }
 
   function goPrev() {
@@ -44,7 +62,7 @@ export default function TesMinatPage() {
     if (!check.ok) {
       setError("Jawab semua soal terlebih dahulu.");
       const firstMissing = check.missing[0];
-      const idx = RIASEC_QUESTIONS.findIndex((x) => x.id === firstMissing);
+      const idx = orderedQuestions.findIndex((x) => x.id === firstMissing);
       if (idx >= 0) setIndex(idx);
       return;
     }
@@ -76,7 +94,7 @@ export default function TesMinatPage() {
           ← Kembali
         </Link>
         <span className="text-xs text-stone-500">
-          Soal {index + 1} / {RIASEC_QUESTIONS.length}
+          Soal {index + 1} / {orderedQuestions.length}
         </span>
       </div>
 
@@ -93,7 +111,7 @@ export default function TesMinatPage() {
         <h1 className="text-lg font-semibold text-stone-900 leading-snug">
           {q.prompt}
         </h1>
-        <div className="mt-4 space-y-2">
+        <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
           {q.options.map((opt) => {
             const selected = answers[q.id] === opt.id;
             return (
@@ -101,13 +119,24 @@ export default function TesMinatPage() {
                 key={opt.id}
                 type="button"
                 onClick={() => selectOption(opt.id)}
-                className={`w-full rounded-xl border px-3 py-3 text-left text-sm leading-snug transition ${
+                className={`w-full rounded-xl border p-3 text-center transition ${
                   selected
-                    ? "border-teal-600 bg-teal-50 text-stone-900"
-                    : "border-stone-200 bg-stone-50 text-stone-800 hover:border-stone-300"
+                    ? "border-teal-600 bg-teal-50"
+                    : "border-stone-200 bg-stone-50 hover:border-stone-300"
                 }`}
               >
-                {opt.text}
+                <div className="mx-auto flex w-fit flex-col items-center">
+                  <Image
+                    src={ANSWER_IMAGE_BY_VALUE[opt.value] ?? "/Netral.png"}
+                    alt={opt.text}
+                    width={72}
+                    height={72}
+                    className="h-[72px] w-[72px] object-contain"
+                  />
+                  <span className="mt-2 text-xs font-medium text-stone-800">
+                    {opt.text}
+                  </span>
+                </div>
               </button>
             );
           })}
@@ -129,20 +158,11 @@ export default function TesMinatPage() {
         >
           Sebelumnya
         </button>
-        {index < RIASEC_QUESTIONS.length - 1 ? (
-          <button
-            type="button"
-            onClick={goNext}
-            disabled={!answers[q.id]}
-            className="h-11 rounded-xl bg-teal-700 px-4 text-sm font-semibold text-white disabled:opacity-40"
-          >
-            Lanjut
-          </button>
-        ) : (
+        {index === orderedQuestions.length - 1 && (
           <button
             type="button"
             onClick={submitAll}
-            disabled={saving}
+            disabled={saving || !answers[q.id]}
             className="h-11 rounded-xl bg-teal-700 px-4 text-sm font-semibold text-white disabled:opacity-60"
           >
             {saving ? "Menyimpan..." : "Selesai & lihat hasil"}
