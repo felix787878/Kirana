@@ -1,67 +1,55 @@
 # Kirana
 
-**Kirana** adalah aplikasi web berbasis **Next.js** untuk membantu remaja usia **12–18 tahun** (termasuk yang tinggal di lingkungan panti asuhan di Indonesia) mengenal minat karier, merencanakan langkah belajar, dan menyusun CV.
+**Kirana** adalah aplikasi web berbasis **Next.js 14** (App Router) untuk membantu remaja **12–18 tahun** (termasuk yang tinggal di lingkungan panti asuhan di Indonesia) mengenal minat karier (tes **RIASEC**), mendapat **saran langkah belajar** lewat AI, dan menyusun **CV** sederhana dengan unduhan PDF.
 
-## Apa saja yang bisa dilakukan?
+## Fitur
 
-- **Tes minat RIASEC**.
-- **Generator peta jalan karier**.
-- **CV Builder sederhana untuk pelajar (gaya profesional ala RenderCV)**.
+- **Tes minat RIASEC** — soal Likert, skor per kategori, dan ringkasan hasil.
+- **Saran langkah belajar / peta jalan** — dihasilkan lewat **OpenRouter** (model LLM dapat dikonfigurasi). Output bersifat usulan; pengguna didorong mendiskusikannya dengan **pihak yang berwenang** (pembina, guru, atau wali).
+- **CV Builder** — input ringkas, pratinjau, unduh PDF (gaya ringkas untuk pelajar).
 
-Data profil, hasil tes, dan data CV disimpan di **Firestore** per pengguna (berdasarkan UID akun).  
-Menu CV dibuat ringkas agar ramah untuk pengguna SMP/SMA dan bisa langsung unduh PDF dari aplikasi.
+Data profil, hasil tes, dan data CV disimpan di **Firestore** per pengguna (UID Firebase Authentication).
 
 ## Prasyarat
 
-- **Node.js** (disarankan LTS, misalnya 20.x)
-- Akun **Google** untuk [Firebase Console](https://console.firebase.google.com/) dan [Google AI Studio](https://aistudio.google.com/) (kunci API Gemini)
+- **Node.js** LTS (misalnya 20.x) dan **npm**
+- Akun **Google** untuk [Firebase Console](https://console.firebase.google.com/) (Authentication + Firestore)
+- Akun **OpenRouter** untuk [kunci API](https://openrouter.ai/keys) (fitur saran langkah belajar)
 
-## Cara menjalankan di komputer lokal
+## Menjalankan secara lokal
 
-### 1. Pasang dependensi
-
-Di folder proyek:
+### 1. Dependensi
 
 ```bash
 npm install
 ```
 
-### 2. Konfigurasi lingkungan
+### 2. Variabel lingkungan
 
-Salin `.env.example` menjadi `.env.local`:
+Salin `.env.example` ke `.env.local` (PowerShell: `Copy-Item .env.example .env.local`), lalu isi:
 
-```bash
-copy .env.example .env.local
-```
-
-Pada PowerShell bisa juga: `Copy-Item .env.example .env.local`
-
-Isi variabel berikut:
-
-**Firebase (wajib untuk login & penyimpanan data)**  
-Ambil dari **Firebase Console** → Project Settings → bagian aplikasi web:
+**Firebase (wajib untuk login & penyimpanan)** — dari Firebase Console → Project settings → aplikasi web:
 
 - `NEXT_PUBLIC_FIREBASE_API_KEY`
 - `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`
 - `NEXT_PUBLIC_FIREBASE_PROJECT_ID`
 - `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET`
 - `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID`
-- `NEXT_PUBLIC_FIREBASE_APP_ID`  
+- `NEXT_PUBLIC_FIREBASE_APP_ID`
 - `NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID` — opsional (Analytics)
 
-**Gemini (wajib untuk fitur peta jalan karier)**  
+**OpenRouter (wajib untuk `/api/roadmap`)**
 
-- `GEMINI_API_KEY` — buat di [Google AI Studio](https://aistudio.google.com/apikey) (kunci untuk **Google AI Studio**, bukan sekadar Vertex).  
-- Opsional: `GEMINI_MODEL` — jika model bawaan gagal, contoh: `gemini-2.0-flash`.  
-- Opsional: `GOOGLE_GENERATIVE_AI_API_KEY` — alias nama lain untuk kunci yang sama.
+- `OPENROUTER_API_KEY` — dari [OpenRouter Keys](https://openrouter.ai/keys)
+- Opsional: `OPENROUTER_MODEL` — contoh: `openai/gpt-4o-mini` (lihat [daftar model](https://openrouter.ai/models))
+- Opsional: `OPENROUTER_BASE_URL`, `OPENROUTER_HTTP_REFERER`, `OPENROUTER_APP_TITLE` — lihat komentar di `.env.example`
 
-Setelah mengubah `.env.local`, **restart** server pengembangan.
+Setelah mengubah `.env.local`, **restart** `npm run dev`.
 
-### 3. Pengaturan Firebase yang perlu diaktifkan
+### 3. Firebase
 
-1. **Authentication** → metode **Email/kata sandi** diaktifkan.  
-2. **Firestore Database** — buat database (mode sesuai kebijakanmu; untuk pengembangan bisa mulai dari aturan terbatas lalu diperketat).  
-3. Aturan keamanan Firestore contoh (hanya pengguna yang login yang boleh baca/tulis dokumen miliknya):
+1. **Authentication** — aktifkan metode **Email/kata sandi**.
+2. **Firestore** — buat database; aturan contoh agar user hanya mengakses dokumen miliknya:
 
 ```text
 rules_version = '2';
@@ -74,15 +62,15 @@ service cloud.firestore {
 }
 ```
 
-### 4. Jalankan mode pengembangan
+### 4. Dev server
 
 ```bash
 npm run dev
 ```
 
-Buka browser di **http://localhost:3000** (atau port yang ditampilkan di terminal).
+Buka **http://localhost:3000** (atau port yang ditampilkan terminal).
 
-### 5. Build produksi (opsional)
+### 5. Build produksi
 
 ```bash
 npm run build
@@ -91,28 +79,39 @@ npm start
 
 ## Skrip npm
 
-| Perintah | Fungsi |
-|----------|--------|
-| `npm run dev` | Server pengembangan Next.js |
-| `npm run build` | Build produksi |
-| `npm run start` | Menjalankan hasil build |
-| `npm run lint` | Pemeriksaan ESLint |
+| Perintah        | Fungsi                    |
+|-----------------|---------------------------|
+| `npm run dev`   | Server pengembangan      |
+| `npm run build` | Build produksi           |
+| `npm run start` | Menjalankan hasil build  |
+| `npm run lint`  | ESLint                    |
+
+## UX navigasi & memuat
+
+- **`app/loading.tsx`** — layar memuat awal aplikasi.
+- **`app/(protected)/loading.tsx`** — memuat cepat saat pindah antar halaman setelah login (dashboard, tes, hasil, roadmap, CV).
+- **`app/auth/loading.tsx`** — memuat saat masuk rute login/daftar.
+- **`NavigationProgress`** — bilah tipis di atas layar saat menekan tautan navigasi internal, agar respons terasa lebih cepat sebelum konten rute siap.
 
 ## Struktur utama proyek
 
 ```text
 app/
-  page.tsx                 # Beranda
-  auth/page.tsx            # Login & daftar
-  (protected)/             # Halaman setelah login (layout bersama)
+  page.tsx                    # Beranda publik
+  loading.tsx                 # Memuat awal
+  auth/                       # Login & daftar (+ loading)
+  (protected)/                # Area setelah login (+ loading segment)
+    layout.tsx                # AuthedShell + AuthGuard
     dashboard/, tes-minat/, hasil/, roadmap/, cv-maker/
-  api/roadmap/route.ts     # Integrasi Gemini (server)
+  api/roadmap/route.ts        # Saran langkah belajar via OpenRouter (server)
 lib/
-  firebase.ts              # Inisialisasi Firebase
-  firestore.ts             # Baca/tulis dokumen pengguna
-  questions.ts             # Bank soal RIASEC
-  scoring.ts               # Perhitungan skor & rekomendasi
-components/                # Komponen UI (auth, shell, PDF CV, dll.)
+  firebase.ts, firestore.ts
+  questions.ts                # Bank soal RIASEC
+  scoring.ts                  # Skor & label kategori
+components/
+  AuthProvider, AuthGuard, AuthedShell, AppHeader
+  NavigationProgress.tsx      # Indikator navigasi
+  ui/                         # Loader, dll.
 ```
 
 ---

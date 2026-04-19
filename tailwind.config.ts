@@ -15,6 +15,15 @@ const config: Config = {
         background: "var(--background)",
         foreground: "var(--foreground)",
       },
+      keyframes: {
+        "nav-shimmer": {
+          "0%": { transform: "translateX(-120%)" },
+          "100%": { transform: "translateX(320%)" },
+        },
+      },
+      animation: {
+        "nav-shimmer": "nav-shimmer 0.85s ease-in-out infinite",
+      },
     },
   },
   plugins: [],
