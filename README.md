@@ -1,20 +1,20 @@
 # Kirana
 
-**Kirana** adalah aplikasi web berbasis **Next.js 14** (App Router) untuk membantu remaja **12–18 tahun** (termasuk yang tinggal di lingkungan panti asuhan di Indonesia) mengenal minat karier (tes **RIASEC**), mendapat **saran langkah belajar** lewat AI, dan menyusun **CV** sederhana dengan unduhan PDF.
+**Kirana** adalah aplikasi web berbasis **Next.js 14** untuk membantu remaja **12–18 tahun** mengenal minat karier (tes **RIASEC**), mendapat **saran langkah belajar** lewat AI, dan menyusun **CV** sederhana dengan unduhan PDF.
 
 ## Fitur
 
 - **Tes minat RIASEC** — soal Likert, skor per kategori, dan ringkasan hasil.
-- **Saran langkah belajar / peta jalan** — dihasilkan lewat **OpenRouter** (model LLM dapat dikonfigurasi). Output bersifat usulan; pengguna didorong mendiskusikannya dengan **pihak yang berwenang** (pembina, guru, atau wali).
-- **CV Builder** — input ringkas, pratinjau, unduh PDF (gaya ringkas untuk pelajar).
+- **Saran langkah belajar / peta jalan** — dihasilkan lewat **OpenRouter**. Output bersifat usulan, pengguna didorong mendiskusikannya dengan **pihak yang berwenang** (pembina, guru, atau wali).
+- **CV Builder** — input ringkas, pratinjau, unduh PDF.
 
-Data profil, hasil tes, dan data CV disimpan di **Firestore** per pengguna (UID Firebase Authentication).
+Data profil, hasil tes, dan data CV disimpan di **Firestore**.
 
 ## Prasyarat
 
 - **Node.js** LTS (misalnya 20.x) dan **npm**
-- Akun **Google** untuk [Firebase Console](https://console.firebase.google.com/) (Authentication + Firestore)
-- Akun **OpenRouter** untuk [kunci API](https://openrouter.ai/keys) (fitur saran langkah belajar)
+- Akun **Google** untuk [Firebase Console](https://console.firebase.google.com/)
+- Akun **OpenRouter** untuk [kunci API](https://openrouter.ai/keys)
 
 ## Menjalankan secara lokal
 
