@@ -1,5 +1,7 @@
+import Image from "next/image";
 import Link from "next/link";
 import { ChevronRight, Compass, FileText, Map } from "lucide-react";
+import bannerImg from "@/app/banner.png";
 
 const cards = [
   {
@@ -31,26 +33,21 @@ const cards = [
 export default function DashboardPage() {
   return (
     <div className="space-y-10">
-      <div className="relative overflow-hidden rounded-3xl border border-white/70 bg-white/65 px-5 py-8 shadow-lg shadow-teal-900/[0.06] backdrop-blur-sm sm:px-8 sm:py-10">
-        <div
-          className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-teal-400/20 blur-3xl"
-          aria-hidden
-        />
-        <div
-          className="pointer-events-none absolute -bottom-8 -left-8 h-40 w-40 rounded-full bg-emerald-300/15 blur-3xl"
-          aria-hidden
-        />
-        <p className="relative text-xs font-semibold uppercase tracking-[0.2em] text-teal-700/90">
-          Selamat datang
-        </p>
-        <h1 className="relative mt-2 text-3xl font-bold tracking-tight text-stone-900 sm:text-4xl">
-          Menu utama
-        </h1>
-        <p className="relative mt-3 max-w-xl text-sm leading-relaxed text-stone-600 sm:text-base">
-          Pilih fitur di bawah. Hasil tes tersimpan di akunmu dan bisa dipakai
-          untuk peta jalan karier.
-        </p>
-      </div>
+      {/* Full-bleed banner: hanya gambar, lebar penuh viewport (keluar dari max-w-3xl + padding main) */}
+      <section
+        className="relative -mt-8 ml-[calc(50%-50vw)] w-screen max-w-[100vw] overflow-x-hidden sm:-mt-10"
+        aria-label="Banner menu utama"
+      >
+        <div className="mx-auto w-full max-w-full md:max-w-3xl md:overflow-hidden md:rounded-2xl md:shadow-md md:shadow-teal-900/10">
+          <Image
+            src={bannerImg}
+            alt="Menu utama Kirana"
+            priority
+            className="block h-auto w-full"
+            sizes="(max-width: 767px) 100vw, 768px"
+          />
+        </div>
+      </section>
 
       <div className="grid gap-4">
         {cards.map((c) => {

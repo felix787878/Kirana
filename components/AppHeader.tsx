@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { signOut } from "firebase/auth";
 import { getFirebaseAuth } from "@/lib/firebase";
 import { useAuth } from "@/components/AuthProvider";
+import iconImg from "@/app/icon.png";
 
 export function AppHeader() {
   const { user } = useAuth();
@@ -37,11 +38,12 @@ export function AppHeader() {
           title={logoTitle}
         >
           <Image
-            src="/icon.png"
+            src={iconImg}
             alt={logoTitle}
             width={36}
             height={36}
             className="h-9 w-9 rounded-lg shadow-sm"
+            priority
           />
           <span className="text-base font-bold tracking-tight text-teal-900">
             Kirana

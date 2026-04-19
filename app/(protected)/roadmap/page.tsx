@@ -6,6 +6,7 @@ import { subscribeUserDocument } from "@/lib/firestore";
 import { RIASEC_LABELS_ID } from "@/lib/scoring";
 import type { RiasecCode } from "@/lib/questions";
 import { useAuth } from "@/components/AuthProvider";
+import { RoadmapMarkdown } from "@/components/RoadmapMarkdown";
 import { LoaderFive } from "@/components/ui/loader";
 import type { UserDocument } from "@/lib/user-document";
 
@@ -294,8 +295,8 @@ export default function RoadmapPage() {
             Ini hanya usulan dari AI. Bahas dulu dengan pembina, guru, atau
             pihak yang berwenang sebelum memutuskan langkah penting.
           </p>
-          <div className="mt-5 whitespace-pre-wrap rounded-xl border border-stone-100 bg-white/80 px-4 py-4 text-[0.9375rem] leading-[1.65] text-stone-800 shadow-inner">
-            {output}
+          <div className="mt-5 rounded-xl border border-stone-100 bg-white/80 px-4 py-5 shadow-inner sm:px-5">
+            <RoadmapMarkdown content={output} />
           </div>
         </section>
       )}

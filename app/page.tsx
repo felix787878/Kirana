@@ -7,6 +7,7 @@ import landingAnimation from "./animasi halaman pertama.json";
 import testLogo from "./test_logo.png";
 import cvLogo from "./cv_logo.png";
 import roadmapLogo from "./roadmap_logo.png";
+import iconImg from "./icon.png";
 
 export default function LandingPage() {
   return (
@@ -15,7 +16,7 @@ export default function LandingPage() {
       <header className="relative z-10 border-b border-sky-100/70 bg-white/60 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-3">
-            <Image src="/icon.png" alt="Kirana Logo" width={44} height={44} />
+            <Image src={iconImg} alt="Kirana Logo" width={44} height={44} priority />
             <span className="text-2xl font-semibold text-cyan-700">kirana</span>
           </div>
           <Link
