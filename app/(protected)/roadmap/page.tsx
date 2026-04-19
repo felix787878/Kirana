@@ -18,7 +18,8 @@ const DEFAULT_MANUAL_PICKS: [RiasecCode, RiasecCode, RiasecCode] = [
   "A",
 ];
 
-const FALLBACK_AGE = 16;
+const AGE_MIN = 8;
+const AGE_MAX = 28;
 
 function distinctTriplet(p: [RiasecCode, RiasecCode, RiasecCode]): boolean {
   return new Set(p).size === 3;
@@ -34,6 +35,8 @@ export default function RoadmapPage() {
   const [output, setOutput] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [ageYears, setAgeYears] = useState("");
+  const agePrefilledFromDoc = useRef(false);
 
   useEffect(() => {
     if (!user) return;
@@ -49,6 +52,18 @@ export default function RoadmapPage() {
     else setSourceMode("manual");
   }, [doc]);
 
+  useEffect(() => {
+    if (doc === undefined || agePrefilledFromDoc.current) return;
+    const a = doc?.age;
+    if (typeof a === "number" && Number.isFinite(a)) {
+      const r = Math.round(a);
+      if (r >= AGE_MIN && r <= AGE_MAX) {
+        setAgeYears(String(r));
+        agePrefilledFromDoc.current = true;
+      }
+    }
+  }, [doc]);
+
   const hasTestResult = useMemo(
     () => Boolean(doc?.topRiasecCodes?.length),
     [doc]
@@ -62,14 +77,6 @@ export default function RoadmapPage() {
     );
     return list.length ? list : null;
   }, [doc]);
-
-  const resolvedAge = useMemo(() => {
-    const a = doc?.age;
-    if (typeof a === "number" && Number.isFinite(a) && a >= 0 && a <= 150) {
-      return Math.round(a);
-    }
-    return FALLBACK_AGE;
-  }, [doc?.age]);
 
   function setManualPick(index: 0 | 1 | 2, code: RiasecCode) {
     setManualPicks((prev) => {
@@ -106,6 +113,18 @@ export default function RoadmapPage() {
       return;
     }
 
+    const ageNum = Number.parseInt(ageYears.trim(), 10);
+    if (
+      !Number.isFinite(ageNum) ||
+      ageNum < AGE_MIN ||
+      ageNum > AGE_MAX
+    ) {
+      setError(
+        `Isi usia dalam tahun (${AGE_MIN}–${AGE_MAX}) agar saran disesuaikan dengan jenjang sekolahmu.`
+      );
+      return;
+    }
+
     if (!user) return;
 
     const topCategories = useTest
@@ -118,7 +137,7 @@ export default function RoadmapPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          age: resolvedAge,
+          age: ageNum,
           topCategories,
         }),
       });
@@ -158,8 +177,9 @@ export default function RoadmapPage() {
           Peta jalan karier
         </h1>
         <p className="max-w-2xl text-sm leading-relaxed text-stone-600">
-          Pilih sumber kategori RIASEC, lalu minta saran langkah belajar. Hasil
-          dibuat oleh AI dan wajib kamu diskusikan dengan pihak yang berwenang.
+          Isi usia dan pilih sumber kategori RIASEC, lalu minta saran langkah
+          belajar. Hasil dibuat oleh AI dan wajib kamu diskusikan dengan pihak
+          yang berwenang.
         </p>
       </div>
 
@@ -167,6 +187,33 @@ export default function RoadmapPage() {
         onSubmit={handleGenerate}
         className="space-y-5 rounded-2xl border border-stone-200 bg-white p-5 shadow-sm sm:p-6"
       >
+        <div className="space-y-2">
+          <label
+            htmlFor="roadmap-age"
+            className="text-sm font-medium text-stone-800"
+          >
+            Berapa usiamu? (tahun)
+          </label>
+          <input
+            id="roadmap-age"
+            name="age"
+            type="number"
+            inputMode="numeric"
+            min={AGE_MIN}
+            max={AGE_MAX}
+            required
+            placeholder={`Contoh: 16 (${AGE_MIN}–${AGE_MAX})`}
+            value={ageYears}
+            onChange={(e) => setAgeYears(e.target.value)}
+            className="w-full rounded-xl border border-stone-200 bg-white px-3 py-2.5 text-sm text-stone-900 outline-none focus:border-teal-300 focus:ring-2 focus:ring-teal-600/25"
+          />
+          <p className="text-xs leading-relaxed text-stone-600">
+            Usia dipakai agar diagram jenjang sekolah dan contoh langkah sesuai
+            situasimu. Kalau sudah pernah diisi di profil dan tersimpan, angka
+            ini bisa terisi otomatis — silakan ubah bila perlu.
+          </p>
+        </div>
+
         <fieldset className="space-y-3">
           <legend className="text-sm font-medium text-stone-800">
             Sumber kategori RIASEC
