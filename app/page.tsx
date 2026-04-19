@@ -7,7 +7,7 @@ import landingAnimation from "./animasi halaman pertama.json";
 import testLogo from "./test_logo.png";
 import cvLogo from "./cv_logo.png";
 import roadmapLogo from "./roadmap_logo.png";
-import iconImg from "./icon.png";
+import iconImg from "./kirana-logo.png";
 
 export default function LandingPage() {
   return (

@@ -1,14 +1,36 @@
 import type { RiasecCode } from "@/lib/questions";
 import type { RiasecScores } from "@/lib/scoring";
+import type { UserCvData } from "./kirana-cv-model";
 
-export type UserCvData = {
-  fullName: string;
-  age: string;
-  school: string;
-  hobbies: string;
-  organization: string;
-  contact: string;
-};
+export type {
+  CvBulletBlock,
+  CvConnection,
+  CvEducation,
+  CvEntryKind,
+  CvExperience,
+  CvNumberedBlock,
+  CvOneLine,
+  CvProject,
+  CvPublication,
+  CvReversedNumberedBlock,
+  CvSection,
+  CvSectionEntry,
+  CvSocial,
+  CvTextBlock,
+  LegacyFlatCv,
+  UserCvData,
+} from "./kirana-cv-model";
+
+export {
+  createEmptyEntry,
+  createEmptySection,
+  CV_SCHEMA_VERSION,
+  getDefaultCvDocument,
+  migrateLegacyCvToV2,
+  newCvId,
+  normalizeUserCv,
+  sanitizeCvDocument,
+} from "./kirana-cv-model";
 
 /** Dokumen `users/{uid}` di Firestore */
 export type UserDocument = {

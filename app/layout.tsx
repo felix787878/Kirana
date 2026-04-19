@@ -12,6 +12,7 @@ export const metadata: Metadata = {
   title: "Kirana — Minat & Karier",
   description:
     "Platform minat karier untuk remaja: tes RIASEC, peta jalan AI, dan CV.",
+  icons: { icon: "/icon.png" },
 };
 
 export default function RootLayout({

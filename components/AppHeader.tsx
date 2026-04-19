@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { signOut } from "firebase/auth";
 import { getFirebaseAuth } from "@/lib/firebase";
 import { useAuth } from "@/components/AuthProvider";
-import iconImg from "@/app/icon.png";
+import iconImg from "@/app/kirana-logo.png";
 
 export function AppHeader() {
   const { user } = useAuth();

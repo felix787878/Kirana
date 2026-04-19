@@ -23,7 +23,7 @@ const cards = [
   {
     href: "/cv-maker",
     title: "CV Builder",
-    desc: "Input ringkas untuk pelajar, lalu unduh CV PDF langsung.",
+    desc: "Susun CV dengan bagian fleksibel, simpan, lalu unduh PDF.",
     icon: FileText,
     gradient: "from-emerald-500 to-teal-700",
     ring: "group-hover:ring-emerald-200/80",
