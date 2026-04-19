@@ -70,7 +70,7 @@ export default function TesMinatPage() {
     setSaving(true);
     try {
       const scores = scoreRiasecAnswers(answers);
-      const top = topRiasecCategories(scores, 2);
+      const top = topRiasecCategories(scores, 3);
       await saveRiasecTestResult(user.uid, {
         scores,
         topCodes: top.map((t) => t.code),

@@ -17,16 +17,16 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
 
   if (configError) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-3 px-4 text-center">
-        <p className="text-stone-800 font-medium">Konfigurasi belum siap</p>
-        <p className="text-sm text-stone-600 max-w-md">{configError}</p>
+      <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-kirana-shell px-4 text-center">
+        <p className="font-medium text-stone-800">Konfigurasi belum siap</p>
+        <p className="max-w-md text-sm text-stone-600">{configError}</p>
       </div>
     );
   }
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#d9edf4]">
+      <div className="flex min-h-screen items-center justify-center bg-kirana-shell px-4">
         <LoaderFive text="Memuat akun..." />
       </div>
     );

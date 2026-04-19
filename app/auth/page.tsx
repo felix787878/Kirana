@@ -61,10 +61,13 @@ export default function AuthPage() {
 
   if (configError) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-2 px-4 text-center">
-        <p className="font-medium text-stone-800">Konfigurasi belum siap</p>
-        <p className="text-sm text-stone-600 max-w-md">{configError}</p>
-        <Link href="/" className="text-sm text-teal-700 underline">
+      <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-kirana-shell px-4 text-center">
+        <p className="font-semibold text-stone-900">Konfigurasi belum siap</p>
+        <p className="max-w-md text-sm text-stone-600">{configError}</p>
+        <Link
+          href="/"
+          className="rounded-xl border border-teal-200 bg-white px-4 py-2 text-sm font-semibold text-teal-800 shadow-sm hover:bg-teal-50"
+        >
           Kembali ke beranda
         </Link>
       </div>
@@ -73,23 +76,24 @@ export default function AuthPage() {
 
   if (loading || user) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#d9edf4]">
+      <div className="flex min-h-screen items-center justify-center bg-kirana-shell px-4">
         <LoaderFive text="Menyiapkan halaman..." />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-stone-50 px-4 py-10">
-      <div className="mx-auto w-full max-w-md space-y-6">
-        <div className="text-center space-y-1">
+    <div className="relative min-h-screen bg-kirana-shell px-4 py-10 sm:py-14">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-gradient-to-b from-teal-100/35 via-transparent to-transparent" />
+      <div className="relative mx-auto w-full max-w-md space-y-6">
+        <div className="space-y-1 text-center">
           <Link
             href="/"
-            className="text-sm font-semibold text-teal-700 hover:text-teal-800"
+            className="inline-flex items-center gap-1 text-sm font-semibold text-teal-800 transition hover:text-teal-950"
           >
-            ← Kirana
+            ← Beranda Kirana
           </Link>
-          <h1 className="text-2xl font-bold text-stone-900 pt-2">
+          <h1 className="pt-3 text-2xl font-bold tracking-tight text-stone-900">
             {mode === "login" ? "Masuk" : "Daftar akun"}
           </h1>
           <p className="text-sm text-stone-600">
@@ -97,7 +101,7 @@ export default function AuthPage() {
           </p>
         </div>
 
-        <div className="flex rounded-xl border border-stone-200 bg-white p-1 shadow-sm">
+        <div className="flex rounded-2xl border border-white/80 bg-white/90 p-1 shadow-md shadow-teal-900/[0.06] backdrop-blur-sm">
           <button
             type="button"
             className={`flex-1 rounded-lg py-2 text-sm font-medium ${
@@ -130,7 +134,7 @@ export default function AuthPage() {
 
         <form
           onSubmit={handleSubmit}
-          className="space-y-4 rounded-2xl border border-stone-200 bg-white p-5 shadow-sm"
+          className="space-y-4 rounded-2xl border border-white/80 bg-white/90 p-6 shadow-lg shadow-teal-900/[0.06] backdrop-blur-sm"
         >
           <div className="space-y-1">
             <label htmlFor="email" className="text-xs font-medium text-stone-700">
