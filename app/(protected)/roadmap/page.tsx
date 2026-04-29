@@ -1,14 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { subscribeUserDocument } from "@/lib/firestore";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
+import { subscribeUserDocument, saveNarrativeSelf } from "@/lib/firestore";
 import { RIASEC_LABELS_ID } from "@/lib/scoring";
 import type { RiasecCode } from "@/lib/questions";
 import { useAuth } from "@/components/AuthProvider";
 import { RoadmapMarkdown } from "@/components/RoadmapMarkdown";
 import { LoaderFive } from "@/components/ui/loader";
-import type { UserDocument } from "@/lib/user-document";
+import type { UserDocument, NarrativeSelf } from "@/lib/user-document";
 
 const CODES: RiasecCode[] = ["R", "I", "A", "S", "E", "C"];
 
@@ -20,6 +20,38 @@ const DEFAULT_MANUAL_PICKS: [RiasecCode, RiasecCode, RiasecCode] = [
 
 const AGE_MIN = 8;
 const AGE_MAX = 28;
+const NARRATIVE_MAX_CHARS = 500;
+
+const EMPTY_NARRATIVE: NarrativeSelf = {
+  hiddenTrait: "",
+  flowActivity: "",
+  helpTarget: "",
+};
+
+const NARRATIVE_FIELDS: {
+  key: keyof NarrativeSelf;
+  label: string;
+  placeholder: string;
+}[] = [
+  {
+    key: "hiddenTrait",
+    label: "Hal yang orang lain tidak tahu tentang kamu",
+    placeholder:
+      "Contoh: Saya kalau tugas udah selesai, selalu greget banget pengen bantu temen yang belom selesai. Bahkan kadang gak bisa tidur kalau tahu ada temen yang kesusahan.",
+  },
+  {
+    key: "flowActivity",
+    label: "Aktivitas yang bikin kamu lupa waktu",
+    placeholder:
+      "Contoh: Gambar-gambar karakter anime di buku tulis. Kadang bikin cerita pendek juga.",
+  },
+  {
+    key: "helpTarget",
+    label: "Siapa yang ingin kamu bantu",
+    placeholder:
+      "Contoh: Adik-adik yang baru masuk panti, supaya mereka gak ngerasa sendirian.",
+  },
+];
 
 function distinctTriplet(p: [RiasecCode, RiasecCode, RiasecCode]): boolean {
   return new Set(p).size === 3;
@@ -37,6 +69,9 @@ export default function RoadmapPage() {
   const [error, setError] = useState<string | null>(null);
   const [ageYears, setAgeYears] = useState("");
   const agePrefilledFromDoc = useRef(false);
+  const [narrative, setNarrative] = useState<NarrativeSelf>(EMPTY_NARRATIVE);
+  const narrativePrefilledFromDoc = useRef(false);
+  const [narrativeOpen, setNarrativeOpen] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -63,6 +98,35 @@ export default function RoadmapPage() {
       }
     }
   }, [doc]);
+
+  // Prefill narasi dari Firestore
+  useEffect(() => {
+    if (doc === undefined || narrativePrefilledFromDoc.current) return;
+    const n = doc?.narrativeSelf;
+    if (n && typeof n === "object") {
+      const filled = {
+        hiddenTrait: n.hiddenTrait ?? "",
+        flowActivity: n.flowActivity ?? "",
+        helpTarget: n.helpTarget ?? "",
+      };
+      const hasContent = Object.values(filled).some((v) => v.trim());
+      if (hasContent) {
+        setNarrative(filled);
+        setNarrativeOpen(true);
+      }
+      narrativePrefilledFromDoc.current = true;
+    }
+  }, [doc]);
+
+  const updateNarrativeField = useCallback(
+    (key: keyof NarrativeSelf, value: string) => {
+      setNarrative((prev) => ({
+        ...prev,
+        [key]: value.slice(0, NARRATIVE_MAX_CHARS),
+      }));
+    },
+    []
+  );
 
   const hasTestResult = useMemo(
     () => Boolean(doc?.topRiasecCodes?.length),
@@ -131,6 +195,12 @@ export default function RoadmapPage() {
       ? (savedTopThree as RiasecCode[])
       : ([...manualPicks] as RiasecCode[]);
 
+    // Simpan narasi ke Firestore (fire-and-forget)
+    const hasNarrative = Object.values(narrative).some((v) => v.trim());
+    if (hasNarrative) {
+      saveNarrativeSelf(user.uid, narrative).catch(() => {});
+    }
+
     setLoading(true);
     try {
       const res = await fetch("/api/roadmap", {
@@ -139,6 +209,7 @@ export default function RoadmapPage() {
         body: JSON.stringify({
           age: ageNum,
           topCategories,
+          ...(hasNarrative ? { narrativeSelf: narrative } : {}),
         }),
       });
       const data = (await res.json()) as {
@@ -317,6 +388,69 @@ export default function RoadmapPage() {
             </div>
           </div>
         )}
+
+        {/* --- Narasi Diri (opsional) --- */}
+        <div className="rounded-xl border border-dashed border-amber-300/80 bg-amber-50/40 transition-all">
+          <button
+            type="button"
+            onClick={() => setNarrativeOpen((o) => !o)}
+            className="flex w-full items-center justify-between gap-2 px-4 py-3.5 text-left"
+            aria-expanded={narrativeOpen}
+          >
+            <span className="flex items-center gap-2">
+              <span className="text-base" aria-hidden>✍️</span>
+              <span className="text-sm font-semibold text-amber-900">
+                Ceritakan tentang dirimu
+              </span>
+              <span className="rounded-full bg-amber-200/70 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-800">
+                Opsional
+              </span>
+            </span>
+            <svg
+              className={[
+                "h-4 w-4 shrink-0 text-amber-600 transition-transform duration-200",
+                narrativeOpen ? "rotate-180" : "",
+              ].join(" ")}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+
+          {narrativeOpen && (
+            <div className="space-y-4 px-4 pb-4">
+              <p className="text-xs leading-relaxed text-amber-800/80">
+                Narasi ini membantu AI memahami sisi personalmu yang tidak
+                tertangkap dari skor tes. Isi sebisa mungkin — tidak wajib semua.
+              </p>
+              {NARRATIVE_FIELDS.map(({ key, label, placeholder }) => (
+                <div key={key} className="space-y-1.5">
+                  <label
+                    htmlFor={`narr-${key}`}
+                    className="text-xs font-semibold text-amber-900"
+                  >
+                    {label}
+                  </label>
+                  <textarea
+                    id={`narr-${key}`}
+                    value={narrative[key] ?? ""}
+                    onChange={(e) => updateNarrativeField(key, e.target.value)}
+                    maxLength={NARRATIVE_MAX_CHARS}
+                    rows={3}
+                    placeholder={placeholder}
+                    className="w-full resize-none rounded-lg border border-amber-200 bg-white px-3 py-2 text-sm text-stone-900 placeholder:text-stone-400 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-500/20"
+                  />
+                  <p className="text-right text-[10px] tabular-nums text-stone-400">
+                    {(narrative[key] ?? "").length}/{NARRATIVE_MAX_CHARS}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
         {error && (
           <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">

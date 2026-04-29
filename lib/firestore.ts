@@ -8,7 +8,7 @@ import {
 import { getFirebaseFirestore } from "@/lib/firebase";
 import type { RiasecCode } from "@/lib/questions";
 import type { RiasecScores } from "@/lib/scoring";
-import type { UserCvData, UserDocument } from "@/lib/user-document";
+import type { UserCvData, UserDocument, NarrativeSelf } from "@/lib/user-document";
 
 export const USERS_COLLECTION = "users";
 
@@ -87,4 +87,11 @@ export function answersToNumericRecord(
     if (!Number.isNaN(n)) out[n] = v;
   }
   return out;
+}
+
+export async function saveNarrativeSelf(
+  uid: string,
+  narrative: NarrativeSelf
+): Promise<void> {
+  await mergeUserDocument(uid, { narrativeSelf: narrative });
 }

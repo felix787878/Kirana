@@ -4,6 +4,55 @@ import { formatRiasecCareerHintsForPrompt } from "@/lib/riasec-career-hints";
 import { RIASEC_LABELS_ID } from "@/lib/scoring";
 
 const RIASEC_CODES = new Set(["R", "I", "A", "S", "E", "C"]);
+const NARRATIVE_FIELD_MAX = 500;
+
+type NarrativeSelfInput = {
+  hiddenTrait?: string;
+  flowActivity?: string;
+  helpTarget?: string;
+};
+
+/** Strip potential HTML/script tags, trim, and truncate. */
+function sanitizeNarrativeField(raw: unknown): string {
+  if (typeof raw !== "string") return "";
+  return raw
+    .replace(/<[^>]*>/g, "")
+    .replace(/```/g, "")
+    .trim()
+    .slice(0, NARRATIVE_FIELD_MAX);
+}
+
+function parseNarrativeSelf(raw: unknown): NarrativeSelfInput | null {
+  if (!raw || typeof raw !== "object") return null;
+  const o = raw as Record<string, unknown>;
+  const result: NarrativeSelfInput = {
+    hiddenTrait: sanitizeNarrativeField(o.hiddenTrait),
+    flowActivity: sanitizeNarrativeField(o.flowActivity),
+    helpTarget: sanitizeNarrativeField(o.helpTarget),
+  };
+  const hasContent = Object.values(result).some((v) => v);
+  return hasContent ? result : null;
+}
+
+function buildNarrativeBlock(n: NarrativeSelfInput): string | null {
+  const parts: string[] = [];
+  if (n.hiddenTrait)
+    parts.push(`\u2022 Hal yang orang lain tidak tahu: \"${n.hiddenTrait}\"`);
+  if (n.flowActivity)
+    parts.push(`\u2022 Aktivitas yang bikin lupa waktu: \"${n.flowActivity}\"`);
+  if (n.helpTarget)
+    parts.push(`\u2022 Siapa yang ingin dibantu: \"${n.helpTarget}\"`);
+  if (!parts.length) return null;
+  return [
+    "--- Narasi Diri Pengguna (konteks personal) ---",
+    ...parts,
+    "--- Akhir Narasi ---",
+  ].join("\n");
+}
+
+const NARRATIVE_USER_INSTRUCTION = `
+INSTRUKSI TAMBAHAN: Gunakan narasi diri di atas sebagai konteks personal yang WAJIB diintegrasikan ke dalam saran karier dan langkah belajar. Hubungkan narasi dengan kode RIASEC dan contoh karier secara spesifik \u2014 jangan abaikan narasi ini. Sebutkan secara eksplisit bagaimana karakteristik personal di narasi bisa menjadi kekuatan dalam jalur karier yang disarankan.
+`.trim();
 
 const SYSTEM_INSTRUCTION = `
 Kamu adalah asisten bimbingan karier untuk remaja Indonesia, banyak di antaranya tinggal di lingkungan panti asuhan.
@@ -25,6 +74,8 @@ Peraturan wajib:
    \`\`\`
    Pastikan setiap blok ditutup \`\`\` di baris sendiri.
 7) Tanpa HTML mentah; tanpa pembuka basa-basi; hindari menyapa dengan nama. Sesuaikan kedalaman dan contoh dengan **usia pengguna** (diberikan di pesan pengguna); boleh menyebut tahapan sekolah yang masuk akal untuk usia itu, hindari kalimat kaku yang hanya menyebut angka usia di paragraf pembuka.
+8) Jika pengguna menyertakan narasi diri (teks bebas di blok "Narasi Diri Pengguna"), WAJIB referensikan dan integrasikan narasi tersebut ke dalam saran karier. Hubungkan dengan kode RIASEC mereka secara spesifik. Narasi ini mengungkap sisi personal yang tidak bisa ditangkap oleh skor numerik.
+9) Jangan mengevaluasi atau menilai narasi secara psikologis (bukan terapis); gunakan hanya sebagai petunjuk untuk personalisasi arah karier dan langkah belajar.
 `.trim();
 
 /** Urutan fallback jika model tidak tersedia / ditolak. */
@@ -219,6 +270,7 @@ export async function POST(req: Request) {
     age?: unknown;
     topCategory?: unknown;
     topCategories?: unknown;
+    narrativeSelf?: unknown;
   };
 
   const topCategories = parseTopCategories(b);
@@ -260,9 +312,15 @@ export async function POST(req: Request) {
 
   const careerHintsBlock = formatRiasecCareerHintsForPrompt(codesOrdered);
 
+  const narrativeParsed = parseNarrativeSelf(b.narrativeSelf);
+  const narrativeBlock = narrativeParsed
+    ? buildNarrativeBlock(narrativeParsed)
+    : null;
+
   const userMessage = `
 Profil minat (urutan prioritas dari data): ${riasecLine}
 ${ageHint}
+${narrativeBlock ? `\n${narrativeBlock}\n\n${NARRATIVE_USER_INSTRUCTION}` : ""}
 
 ${careerHintsBlock}
 

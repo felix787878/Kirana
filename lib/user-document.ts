@@ -32,6 +32,16 @@ export {
   sanitizeCvDocument,
 } from "./kirana-cv-model";
 
+/** Narasi diri pengguna — opsional, untuk personalisasi roadmap AI */
+export type NarrativeSelf = {
+  /** Hal yang orang lain tidak tahu tentang kamu */
+  hiddenTrait?: string;
+  /** Aktivitas yang bikin kamu lupa waktu */
+  flowActivity?: string;
+  /** Siapa yang ingin kamu bantu dan kenapa */
+  helpTarget?: string;
+};
+
 /** Dokumen `users/{uid}` di Firestore */
 export type UserDocument = {
   name?: string;
@@ -41,5 +51,7 @@ export type UserDocument = {
   /** Kunci id soal sebagai string agar kompatibel dengan Firestore */
   testAnswers?: Record<string, string> | null;
   cv?: UserCvData | null;
+  /** Narasi diri untuk personalisasi saran AI */
+  narrativeSelf?: NarrativeSelf | null;
   updatedAt?: unknown;
 };
