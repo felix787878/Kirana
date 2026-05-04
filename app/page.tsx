@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import Lottie from "lottie-react";
+import { useEffect } from "react";
 import { useAuth } from "@/components/AuthProvider";
 import { AppHeader } from "@/components/AppHeader";
 import landingAnimation from "./animasi halaman pertama.json";
@@ -12,6 +13,37 @@ import roadmapLogo from "./roadmap_logo.png";
 
 export default function LandingPage() {
   const { user } = useAuth();
+
+  useEffect(() => {
+    const iconLinks = Array.from(
+      document.querySelectorAll("link[rel*='icon']")
+    ).map((node) => ({
+      rel: node.getAttribute("rel"),
+      href: node.getAttribute("href"),
+    }));
+    const appleLinks = Array.from(
+      document.querySelectorAll("link[rel='apple-touch-icon']")
+    ).map((node) => node.getAttribute("href"));
+
+    // #region agent log
+    fetch("http://127.0.0.1:7435/ingest/05ba4735-ad69-436d-9b0e-34a9e27f2497", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Debug-Session-Id": "770b3c",
+      },
+      body: JSON.stringify({
+        sessionId: "770b3c",
+        runId: "pre-fix",
+        hypothesisId: "H5",
+        location: "app/page.tsx:18",
+        message: "Client sees icon link tags",
+        data: { iconLinks, appleLinks, pathname: window.location.pathname },
+        timestamp: Date.now(),
+      }),
+    }).catch(() => {});
+    // #endregion
+  }, []);
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#d9edf4]">

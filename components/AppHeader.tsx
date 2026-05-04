@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { signOut } from "firebase/auth";
 import { getFirebaseAuth } from "@/lib/firebase";
 import { useAuth } from "@/components/AuthProvider";
-import iconImg from "@/app/Kirana.png";
+import iconImg from "@/app/kirana2.png";
 
 export function AppHeader() {
   const { user } = useAuth();
@@ -19,6 +19,10 @@ export function AppHeader() {
     pathname === "/dashboard"
       ? "Halaman Tes. Rencanakan. Wujudkan."
       : "Menu utama";
+  const containerClass =
+    pathname === "/"
+      ? "mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-5"
+      : "mx-auto flex max-w-3xl items-center justify-between gap-3 px-4 py-3 sm:px-5";
 
   async function handleLogout() {
     try {
@@ -31,7 +35,7 @@ export function AppHeader() {
 
   return (
     <header className="sticky top-0 z-20 border-b border-white/60 bg-white/75 shadow-sm shadow-teal-900/[0.04] backdrop-blur-md">
-      <div className="mx-auto flex max-w-3xl items-center justify-between gap-3 px-4 py-3 sm:px-5">
+      <div className={containerClass}>
         <Link
           href={logoHref}
           className="flex items-center gap-2.5 rounded-xl py-1 pr-2 text-teal-900 transition hover:bg-teal-50/80"
@@ -42,7 +46,7 @@ export function AppHeader() {
             alt={logoTitle}
             width={36}
             height={36}
-            className="h-9 w-9 rounded-lg shadow-sm"
+            className="h-9 w-9"
             priority
           />
           <span className="text-base font-bold tracking-tight text-teal-900">
