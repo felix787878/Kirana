@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { signOut } from "firebase/auth";
 import { getFirebaseAuth } from "@/lib/firebase";
 import { useAuth } from "@/components/AuthProvider";
-import iconImg from "@/app/kirana-logo.png";
+import iconImg from "@/app/Kirana.png";
 
 export function AppHeader() {
   const { user } = useAuth();
@@ -49,18 +49,27 @@ export function AppHeader() {
             Kirana
           </span>
         </Link>
-        <div className="flex min-w-0 items-center gap-2">
-          <span className="max-w-[120px] truncate text-xs text-stone-500 sm:max-w-[220px]">
-            {user?.email ?? ""}
-          </span>
-          <button
-            type="button"
-            onClick={handleLogout}
-            className="shrink-0 rounded-xl border border-stone-200/90 bg-white px-3 py-2 text-xs font-semibold text-stone-700 shadow-sm transition hover:border-teal-200 hover:bg-teal-50/80 hover:text-teal-900"
+        {user ? (
+          <div className="flex min-w-0 items-center gap-2">
+            <span className="max-w-[120px] truncate text-xs text-stone-500 sm:max-w-[220px]">
+              {user.displayName?.trim() || user.email}
+            </span>
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="shrink-0 rounded-xl border border-stone-200/90 bg-white px-3 py-2 text-xs font-semibold text-stone-700 shadow-sm transition hover:border-teal-200 hover:bg-teal-50/80 hover:text-teal-900"
+            >
+              Keluar
+            </button>
+          </div>
+        ) : (
+          <Link
+            href="/auth"
+            className="text-sm font-semibold text-stone-700 transition hover:text-teal-700"
           >
-            Keluar
-          </button>
-        </div>
+            Login
+          </Link>
+        )}
       </div>
     </header>
   );

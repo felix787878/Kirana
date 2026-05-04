@@ -3,30 +3,22 @@
 import Link from "next/link";
 import Image from "next/image";
 import Lottie from "lottie-react";
+import { useAuth } from "@/components/AuthProvider";
+import { AppHeader } from "@/components/AppHeader";
 import landingAnimation from "./animasi halaman pertama.json";
 import testLogo from "./test_logo.png";
 import cvLogo from "./cv_logo.png";
 import roadmapLogo from "./roadmap_logo.png";
-import iconImg from "./kirana-logo.png";
 
 export default function LandingPage() {
+  const { user } = useAuth();
+
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#d9edf4]">
       <div className="pointer-events-none absolute inset-0 aurora-bg" />
-      <header className="relative z-10 border-b border-sky-100/70 bg-white/60 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-3">
-            <Image src={iconImg} alt="Kirana Logo" width={44} height={44} priority />
-            <span className="text-2xl font-semibold text-cyan-700">kirana</span>
-          </div>
-          <Link
-            href="/auth"
-            className="text-sm font-semibold text-slate-700 transition hover:text-cyan-700"
-          >
-            Login
-          </Link>
-        </div>
-      </header>
+      <div className="relative z-10">
+        <AppHeader />
+      </div>
 
       <main className="relative z-10 mx-auto grid max-w-6xl items-center gap-10 px-6 py-12 md:grid-cols-2 md:py-16">
         <div className="order-1">
@@ -48,7 +40,7 @@ export default function LandingPage() {
           </p>
 
           <Link
-            href="/auth"
+            href={user ? "/dashboard" : "/auth"}
             className="mt-8 inline-flex h-12 items-center justify-center rounded-xl bg-amber-500 px-10 text-sm font-semibold text-white shadow-lg transition hover:bg-amber-600"
           >
             Mulai
