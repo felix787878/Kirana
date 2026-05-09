@@ -200,7 +200,6 @@ export function CvPaperPreview({ data }: { data: UserCvData }) {
 
   return (
     <div className="sticky top-4 max-h-[calc(100dvh-7rem)] overflow-y-auto rounded-xl border border-slate-200 bg-slate-100/90 p-2 shadow-inner sm:p-4 xl:max-h-[calc(100dvh-5rem)]">
-      <p className="mb-2 text-center text-xs text-slate-500 xl:mb-3">Pratinjau kertas (gulir)</p>
       <div className="mx-auto w-full max-w-none bg-white shadow-lg ring-1 ring-slate-200/80">
         <div
           className="box-border min-h-[min(297mm,100dvh)] w-full max-w-none px-[clamp(10mm,4vw,14mm)] py-[clamp(8mm,3vw,12mm)] text-black sm:min-h-[297mm]"

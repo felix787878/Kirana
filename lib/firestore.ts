@@ -8,7 +8,13 @@ import {
 import { getFirebaseFirestore } from "@/lib/firebase";
 import type { RiasecCode } from "@/lib/questions";
 import type { RiasecScores } from "@/lib/scoring";
-import type { UserCvData, UserDocument, NarrativeSelf } from "@/lib/user-document";
+import type {
+  UserCvData,
+  UserDocument,
+  NarrativeSelf,
+  RiasecTestHistoryEntry,
+  RoadmapHistoryEntry,
+} from "@/lib/user-document";
 
 export const USERS_COLLECTION = "users";
 
@@ -58,10 +64,26 @@ export async function saveRiasecTestResult(
   for (const [k, v] of Object.entries(payload.answers)) {
     testAnswers[String(k)] = v;
   }
+  const createdAtMs = Date.now();
+  const entry: RiasecTestHistoryEntry = {
+    createdAtMs,
+    scores: payload.scores,
+    topCodes: payload.topCodes,
+    testAnswers,
+  };
+
+  const existing = await fetchUserDocument(uid);
+  const prevHistory = (existing?.riasecHistory ?? []).filter(Boolean);
+  const nextHistory = [entry, ...prevHistory]
+    .filter((e) => e && typeof e.createdAtMs === "number")
+    .sort((a, b) => b.createdAtMs - a.createdAtMs)
+    .slice(0, 5);
+
   await mergeUserDocument(uid, {
     riasecScores: payload.scores,
     topRiasecCodes: payload.topCodes,
     testAnswers,
+    riasecHistory: nextHistory,
   });
 }
 
@@ -94,4 +116,26 @@ export async function saveNarrativeSelf(
   narrative: NarrativeSelf
 ): Promise<void> {
   await mergeUserDocument(uid, { narrativeSelf: narrative });
+}
+
+export async function saveRoadmapResult(
+  uid: string,
+  payload: { topCodes: RiasecCode[]; age: number; text: string }
+): Promise<void> {
+  const createdAtMs = Date.now();
+  const entry: RoadmapHistoryEntry = {
+    createdAtMs,
+    topCodes: payload.topCodes,
+    age: payload.age,
+    text: payload.text,
+  };
+
+  const existing = await fetchUserDocument(uid);
+  const prevHistory = (existing?.roadmapHistory ?? []).filter(Boolean);
+  const nextHistory = [entry, ...prevHistory]
+    .filter((e) => e && typeof e.createdAtMs === "number")
+    .sort((a, b) => b.createdAtMs - a.createdAtMs)
+    .slice(0, 20);
+
+  await mergeUserDocument(uid, { roadmapHistory: nextHistory });
 }

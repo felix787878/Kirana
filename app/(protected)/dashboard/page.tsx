@@ -20,8 +20,17 @@ const cards = [
     gradient: "from-cyan-500 to-teal-600",
     ring: "group-hover:ring-cyan-200/80",
   },
+  // Nonaktifkan CV lama (cv-maker) tanpa menghapus kodenya.
+  // {
+  //   href: "/cv-maker",
+  //   title: "CV Builder",
+  //   desc: "Susun CV dengan bagian fleksibel, simpan, lalu unduh PDF.",
+  //   icon: FileText,
+  //   gradient: "from-emerald-500 to-teal-700",
+  //   ring: "group-hover:ring-emerald-200/80",
+  // },
   {
-    href: "/cv-maker",
+    href: "/cv-percobaan",
     title: "CV Builder",
     desc: "Susun CV dengan bagian fleksibel, simpan, lalu unduh PDF.",
     icon: FileText,

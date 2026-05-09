@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
   createUserWithEmailAndPassword,
@@ -15,8 +15,15 @@ type Mode = "login" | "register";
 
 export default function AuthPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const requestedMode = searchParams.get("mode");
+  const nextPathRaw = searchParams.get("next");
+  const nextPath =
+    nextPathRaw && nextPathRaw.startsWith("/") ? nextPathRaw : "/dashboard";
   const { user, loading, configError } = useAuth();
-  const [mode, setMode] = useState<Mode>("login");
+  const [mode, setMode] = useState<Mode>(
+    requestedMode === "register" ? "register" : "login"
+  );
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
@@ -24,9 +31,16 @@ export default function AuthPage() {
 
   useEffect(() => {
     if (!loading && user) {
-      router.replace("/dashboard");
+      router.replace(nextPath);
     }
-  }, [loading, user, router]);
+  }, [loading, user, router, nextPath]);
+
+  useEffect(() => {
+    if (requestedMode === "register" || requestedMode === "login") {
+      setMode(requestedMode);
+      setError(null);
+    }
+  }, [requestedMode]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -39,7 +53,7 @@ export default function AuthPage() {
       } else {
         await signInWithEmailAndPassword(auth, email.trim(), password);
       }
-      router.replace("/dashboard");
+      router.replace(nextPath);
     } catch (err: unknown) {
       const code =
         err && typeof err === "object" && "code" in err

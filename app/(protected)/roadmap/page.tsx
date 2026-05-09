@@ -1,8 +1,12 @@
 "use client";
 
-import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
-import { subscribeUserDocument, saveNarrativeSelf } from "@/lib/firestore";
+import {
+  subscribeUserDocument,
+  saveNarrativeSelf,
+  saveRoadmapResult,
+} from "@/lib/firestore";
 import { RIASEC_LABELS_ID } from "@/lib/scoring";
 import type { RiasecCode } from "@/lib/questions";
 import { useAuth } from "@/components/AuthProvider";
@@ -28,6 +32,22 @@ const EMPTY_NARRATIVE: NarrativeSelf = {
   helpTarget: "",
 };
 
+function parseCodesParam(raw: string | null): RiasecCode[] | null {
+  if (!raw) return null;
+  const parts = raw
+    .split(",")
+    .map((s) => s.trim().toUpperCase())
+    .filter(Boolean);
+  const valid: RiasecCode[] = [];
+  for (const p of parts) {
+    if (p === "R" || p === "I" || p === "A" || p === "S" || p === "E" || p === "C") {
+      valid.push(p);
+    }
+  }
+  const uniq = Array.from(new Set(valid)).slice(0, 3) as RiasecCode[];
+  return uniq.length === 3 ? uniq : null;
+}
+
 const NARRATIVE_FIELDS: {
   key: keyof NarrativeSelf;
   label: string;
@@ -49,7 +69,7 @@ const NARRATIVE_FIELDS: {
     key: "helpTarget",
     label: "Siapa yang ingin kamu bantu",
     placeholder:
-      "Contoh: Adik-adik yang baru masuk panti, supaya mereka gak ngerasa sendirian.",
+      "Contoh: Teman-teman yang baru masuk panti, supaya mereka gak ngerasa sendirian.",
   },
 ];
 
@@ -59,6 +79,8 @@ function distinctTriplet(p: [RiasecCode, RiasecCode, RiasecCode]): boolean {
 
 export default function RoadmapPage() {
   const { user } = useAuth();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [doc, setDoc] = useState<UserDocument | null | undefined>(undefined);
   const modeInitialized = useRef(false);
   const [sourceMode, setSourceMode] = useState<"test" | "manual">("manual");
@@ -72,9 +94,14 @@ export default function RoadmapPage() {
   const [narrative, setNarrative] = useState<NarrativeSelf>(EMPTY_NARRATIVE);
   const narrativePrefilledFromDoc = useRef(false);
   const [narrativeOpen, setNarrativeOpen] = useState(false);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  const [viewingHistory, setViewingHistory] = useState(false);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      setDoc(null);
+      return;
+    }
     const unsub = subscribeUserDocument(user.uid, setDoc);
     return () => unsub();
   }, [user]);
@@ -86,6 +113,19 @@ export default function RoadmapPage() {
     if (doc?.topRiasecCodes?.length) setSourceMode("test");
     else setSourceMode("manual");
   }, [doc]);
+
+  useEffect(() => {
+    const viewAtRaw = searchParams.get("viewAt");
+    if (!viewAtRaw) return;
+    const viewAt = Number(viewAtRaw);
+    if (!Number.isFinite(viewAt)) return;
+    const list = doc?.roadmapHistory ?? null;
+    if (!list?.length) return;
+    const found = list.find((x) => x.createdAtMs === viewAt);
+    if (!found) return;
+    setViewingHistory(true);
+    setOutput(found.text ?? "");
+  }, [doc, searchParams]);
 
   useEffect(() => {
     if (doc === undefined || agePrefilledFromDoc.current) return;
@@ -133,14 +173,25 @@ export default function RoadmapPage() {
     [doc]
   );
 
+  const codesFromQuery = useMemo(
+    () => parseCodesParam(searchParams.get("codes")),
+    [searchParams]
+  );
+
   const savedTopThree = useMemo(() => {
+    if (codesFromQuery?.length) return codesFromQuery;
     if (!doc?.topRiasecCodes?.length) return null;
     const list = (doc.topRiasecCodes.filter(Boolean) as RiasecCode[]).slice(
       0,
       3
     );
     return list.length ? list : null;
-  }, [doc]);
+  }, [codesFromQuery, doc]);
+
+  useEffect(() => {
+    if (!codesFromQuery?.length) return;
+    setSourceMode("test");
+  }, [codesFromQuery]);
 
   function setManualPick(index: 0 | 1 | 2, code: RiasecCode) {
     setManualPicks((prev) => {
@@ -168,6 +219,8 @@ export default function RoadmapPage() {
     e.preventDefault();
     setError(null);
     setOutput(null);
+    setShowLoginPrompt(false);
+    setViewingHistory(false);
 
     const useTest =
       sourceMode === "test" && hasTestResult && Boolean(savedTopThree?.length);
@@ -189,7 +242,10 @@ export default function RoadmapPage() {
       return;
     }
 
-    if (!user) return;
+    if (!user) {
+      setShowLoginPrompt(true);
+      return;
+    }
 
     const topCategories = useTest
       ? (savedTopThree as RiasecCode[])
@@ -225,7 +281,13 @@ export default function RoadmapPage() {
         setError((data.error ?? "Permintaan gagal.") + hint);
         return;
       }
-      setOutput(data.text ?? "");
+      const text = data.text ?? "";
+      setOutput(text);
+      if (user && text.trim()) {
+        saveRoadmapResult(user.uid, { topCodes: topCategories, age: ageNum, text }).catch(
+          () => {}
+        );
+      }
     } catch {
       setError("Tidak dapat menghubungi server. Coba lagi.");
     } finally {
@@ -244,6 +306,13 @@ export default function RoadmapPage() {
   return (
     <div className="space-y-8">
       <div className="space-y-2">
+        <button
+          type="button"
+          onClick={() => router.back()}
+          className="inline-flex items-center gap-1 text-sm font-semibold text-teal-800 transition hover:text-teal-950"
+        >
+          ← Kembali
+        </button>
         <h1 className="text-2xl font-bold tracking-tight text-stone-900">
           Peta jalan karier
         </h1>
@@ -278,11 +347,6 @@ export default function RoadmapPage() {
             onChange={(e) => setAgeYears(e.target.value)}
             className="w-full rounded-xl border border-stone-200 bg-white px-3 py-2.5 text-sm text-stone-900 outline-none focus:border-teal-300 focus:ring-2 focus:ring-teal-600/25"
           />
-          <p className="text-xs leading-relaxed text-stone-600">
-            Usia dipakai agar diagram jenjang sekolah dan contoh langkah sesuai
-            situasimu. Kalau sudah pernah diisi di profil dan tersimpan, angka
-            ini bisa terisi otomatis — silakan ubah bila perlu.
-          </p>
         </div>
 
         <fieldset className="space-y-3">
@@ -328,8 +392,7 @@ export default function RoadmapPage() {
           </div>
           {!hasTestResult && (
             <p className="text-xs text-amber-800">
-              Belum ada hasil tes — opsi &quot;Hasil tes minat&quot; aktif setelah
-              kamu menyelesaikan tes di menu Tes minat.
+              Belum ada opsi &quot;Hasil tes minat&quot; kerjakan dulu Tes minat.
             </p>
           )}
         </fieldset>
@@ -398,7 +461,6 @@ export default function RoadmapPage() {
             aria-expanded={narrativeOpen}
           >
             <span className="flex items-center gap-2">
-              <span className="text-base" aria-hidden>✍️</span>
               <span className="text-sm font-semibold text-amber-900">
                 Ceritakan tentang dirimu
               </span>
@@ -422,10 +484,6 @@ export default function RoadmapPage() {
 
           {narrativeOpen && (
             <div className="space-y-4 px-4 pb-4">
-              <p className="text-xs leading-relaxed text-amber-800/80">
-                Narasi ini membantu AI memahami sisi personalmu yang tidak
-                tertangkap dari skor tes. Isi sebisa mungkin — tidak wajib semua.
-              </p>
               {NARRATIVE_FIELDS.map(({ key, label, placeholder }) => (
                 <div key={key} className="space-y-1.5">
                   <label
@@ -470,7 +528,7 @@ export default function RoadmapPage() {
       {output && (
         <section className="rounded-2xl border border-teal-100/80 bg-gradient-to-b from-white to-stone-50/90 p-5 shadow-sm ring-1 ring-stone-100 sm:p-6">
           <h2 className="text-lg font-semibold tracking-tight text-stone-900">
-            Saran langkah belajar
+            {viewingHistory ? "Mindmap tersimpan" : "Saran langkah belajar"}
           </h2>
           <p className="mt-1.5 text-xs leading-relaxed text-stone-500">
             Ini hanya usulan dari AI. Bahas dulu dengan pembina, guru, atau
@@ -482,12 +540,35 @@ export default function RoadmapPage() {
         </section>
       )}
 
-      <Link
-        href="/dashboard"
-        className="block text-center text-sm font-medium text-teal-800 underline-offset-4 hover:underline"
-      >
-        Kembali ke menu
-      </Link>
+      {showLoginPrompt && (
+        <div className="fixed inset-0 z-30 flex items-center justify-center bg-stone-900/40 px-4">
+          <div className="w-full max-w-md rounded-2xl border border-white/70 bg-white p-5 shadow-xl">
+            <h2 className="text-lg font-semibold text-stone-900">
+              Login dulu untuk buat mindmap
+            </h2>
+            <p className="mt-2 text-sm leading-relaxed text-stone-600">
+              Supaya hasil mindmap tersimpan dan bisa kamu buka lagi kapan saja,
+              kamu perlu login terlebih dahulu.
+            </p>
+            <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={() => setShowLoginPrompt(false)}
+                className="h-10 rounded-xl border border-stone-200 bg-white px-4 text-sm font-medium text-stone-700 hover:bg-stone-50"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={() => router.push("/auth?mode=login&next=/roadmap")}
+                className="h-10 rounded-xl bg-teal-700 px-4 text-sm font-semibold text-white hover:bg-teal-800"
+              >
+                Login
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
