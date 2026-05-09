@@ -71,22 +71,28 @@ type Props = {
   previewCount?: number;
   /** Tanpa kartu terpisah; dipakai saat diletakkan di dalam wadah induk. */
   embedded?: boolean;
+  /** Tanpa intro panjang & tanpa deskripsi per kategori — hanya batang skor. */
+  compact?: boolean;
 };
 
 export function RiasecAllCategoriesSection({
   ranked,
   previewCount,
   embedded = false,
+  compact = false,
 }: Props) {
   const [openCode, setOpenCode] = useState<RiasecCode | null>(null);
   const [showAllCategories, setShowAllCategories] = useState(false);
 
   const usePreview =
+    !compact &&
     typeof previewCount === "number" &&
     previewCount > 0 &&
     ranked.length > previewCount;
   const visibleRanked =
-    usePreview && !showAllCategories ? ranked.slice(0, previewCount) : ranked;
+    usePreview && !showAllCategories ? ranked.slice(0, previewCount) : compact
+      ? ranked.slice(0, previewCount ?? ranked.length)
+      : ranked;
   const hiddenCount = usePreview ? ranked.length - previewCount : 0;
 
   return (
@@ -98,22 +104,60 @@ export function RiasecAllCategoriesSection({
       }
     >
       <h2 className="text-lg font-semibold text-stone-900">
-        {usePreview && !showAllCategories
-          ? "Detail tiga kategori teratas"
-          : "Ringkasan semua kategori"}
+        {compact
+          ? "Skor RIASEC"
+          : usePreview && !showAllCategories
+            ? "Detail tiga kategori teratas"
+            : "Ringkasan semua kategori"}
       </h2>
-      <p className="mt-1 text-sm text-stone-600">
-        Persentase menunjukkan seberapa kuat minatmu pada tiap tipe (dari skor
-        tes).
-      </p>
+      {!compact ? (
+        <p className="mt-1 text-sm text-stone-600">
+          Persentase menunjukkan seberapa kuat minatmu pada tiap tipe (dari skor
+          tes).
+        </p>
+      ) : null}
 
-      <ul className="mt-6 space-y-5">
+      <ul className={compact ? "mt-3 space-y-3" : "mt-6 space-y-5"}>
         {visibleRanked.map((row) => {
           const code = row.code;
           const pct = riasecScoreToPercent(row.score);
           const style = BAR_STYLE[code];
           const isOpen = openCode === code;
           const label = RIASEC_LABELS_ID[code];
+
+          if (compact) {
+            return (
+              <li
+                key={code}
+                className="border-b border-stone-100 pb-3 last:border-0 last:pb-0"
+              >
+                <div className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-0.5">
+                  <span className="text-sm font-semibold text-stone-900">
+                    {label}
+                  </span>
+                  <span
+                    className={`text-sm font-bold tabular-nums ${style.percentText}`}
+                  >
+                    {pct}%
+                  </span>
+                </div>
+                <div className="mt-1.5 px-0.5 sm:px-1">
+                  <div
+                    className={`relative h-2.5 w-full rounded-full ${style.track}`}
+                  >
+                    <div
+                      className={`absolute inset-y-0 left-0 rounded-full ${style.fill} transition-[width] duration-300 ease-out`}
+                      style={{ width: `${pct}%` }}
+                    />
+                    <span
+                      className="pointer-events-none absolute top-1/2 z-10 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-white shadow-md ring-1 ring-stone-200/80"
+                      style={{ left: `${pct}%` }}
+                    />
+                  </div>
+                </div>
+              </li>
+            );
+          }
 
           return (
             <li key={code} className="border-b border-stone-100 pb-5 last:border-0 last:pb-0">

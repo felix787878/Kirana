@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { rankRiasecScores, RIASEC_LABELS_ID } from "@/lib/scoring";
 import type { RiasecCode } from "@/lib/questions";
@@ -80,6 +81,7 @@ function formatHistoryChip(createdAtMs: number) {
 
 export default function HasilPage() {
   const { user } = useAuth();
+  const router = useRouter();
   const [doc, setDoc] = useState<UserDocument | null | undefined>(undefined);
   const [selectedAt, setSelectedAt] = useState<number | null>(null);
 
@@ -100,7 +102,18 @@ export default function HasilPage() {
   }, [doc, selectedAt]);
 
   if (doc === undefined) {
-    return <HasilLoadingSkeleton />;
+    return (
+      <div className="space-y-4">
+        <button
+          type="button"
+          onClick={() => router.back()}
+          className="inline-flex items-center gap-1 text-sm font-semibold text-teal-800 transition hover:text-teal-950"
+        >
+          ← Kembali
+        </button>
+        <HasilLoadingSkeleton />
+      </div>
+    );
   }
 
   const history = (doc?.riasecHistory ?? [])
@@ -123,20 +136,26 @@ export default function HasilPage() {
 
   if (!scores || !topCodes?.length) {
     return (
-      <div className="space-y-4 rounded-2xl border border-stone-200 bg-white p-6 text-center shadow-sm">
-        <h1 className="text-lg font-semibold text-stone-900">
-          Belum ada hasil tes
-        </h1>
-        <p className="text-sm text-stone-600">
-          Kerjakan tes minat dulu untuk melihat kategori RIASEC dan saran
-          karier.
-        </p>
-        <Link
-          href="/tes-minat"
-          className="inline-flex h-11 items-center justify-center rounded-xl bg-teal-700 px-5 text-sm font-semibold text-white"
+      <div className="space-y-4">
+        <button
+          type="button"
+          onClick={() => router.back()}
+          className="inline-flex items-center gap-1 text-sm font-semibold text-teal-800 transition hover:text-teal-950"
         >
-          Mulai tes minat
-        </Link>
+          ← Kembali
+        </button>
+        <div className="space-y-3 rounded-2xl border border-stone-200 bg-white p-5 text-center shadow-sm">
+          <h1 className="text-base font-semibold text-stone-900">
+            Belum ada hasil
+          </h1>
+          <p className="text-sm text-stone-600">Kerjakan tes minat dulu.</p>
+          <Link
+            href="/tes-minat"
+            className="inline-flex h-10 items-center justify-center rounded-xl bg-teal-700 px-4 text-sm font-semibold text-white"
+          >
+            Mulai tes
+          </Link>
+        </div>
       </div>
     );
   }
@@ -161,18 +180,21 @@ export default function HasilPage() {
     .join(" · ");
 
   return (
-    <div className="space-y-6">
-      <section className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm sm:p-6">
+    <div className="space-y-5">
+      <button
+        type="button"
+        onClick={() => router.back()}
+        className="inline-flex items-center gap-1 text-sm font-semibold text-teal-800 transition hover:text-teal-950"
+      >
+        ← Kembali
+      </button>
+      <section className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm sm:p-5">
         <header className="space-y-2">
-          <h1 className="text-xl font-semibold tracking-tight text-stone-900 sm:text-2xl">
-            Tes minat & roadmap
+          <h1 className="text-lg font-semibold tracking-tight text-stone-900 sm:text-xl">
+            Ringkasan hasil
           </h1>
-          <p className="max-w-prose text-sm leading-snug text-stone-600">
-            Hasil RIASEC dan mindmap pakai <span className="font-medium text-stone-800">kode yang sama</span>. Mindmap
-            kosong sampai kamu buat di peta jalan.
-          </p>
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 pt-0.5">
-            <span className="inline-flex items-center rounded-lg bg-teal-50 px-2.5 py-1 font-mono text-sm font-semibold tracking-tight text-teal-900 ring-1 ring-teal-100">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <span className="inline-flex items-center rounded-lg bg-teal-50 px-2 py-0.5 font-mono text-sm font-semibold text-teal-900 ring-1 ring-teal-100">
               {topCodes.join("")}
             </span>
             <span className="text-sm text-stone-600">{topReadable}</span>
@@ -180,9 +202,9 @@ export default function HasilPage() {
         </header>
 
         {history.length > 1 && (
-          <div className="mt-4 rounded-xl border border-stone-200 bg-stone-50/60 px-3 py-3 sm:px-4">
-            <p className="text-xs font-semibold text-stone-700">
-              Riwayat tes · {RIASEC_HISTORY_MAX} terbaru
+          <div className="mt-3 rounded-lg border border-stone-200 bg-stone-50/60 px-2.5 py-2 sm:px-3">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-stone-500">
+              Tes lain
             </p>
             <div
               className="mt-2 flex flex-wrap gap-2"
@@ -221,122 +243,74 @@ export default function HasilPage() {
           </div>
         )}
 
-        <p
-          className="mt-4 flex flex-wrap items-center gap-x-1 gap-y-1 text-xs text-stone-600"
-          role="navigation"
-          aria-label="Alur singkat"
-        >
-          <span className="font-semibold text-stone-700">Alur:</span>
-          <span className="rounded bg-stone-100 px-1.5 py-0.5 text-[11px] font-medium text-stone-800">Tes</span>
-          <span aria-hidden className="text-stone-400">
-            →
-          </span>
-          <a
-            href="#ringkasan-riasec"
-            className="font-medium text-teal-800 underline decoration-teal-800/30 underline-offset-2"
-          >
-            Skor RIASEC
-          </a>
-          <span aria-hidden className="text-stone-400">
-            →
-          </span>
-          <a
-            href="#mindmap-roadmap"
-            className="font-medium text-teal-800 underline decoration-teal-800/30 underline-offset-2"
-          >
-            Mindmap
-          </a>
-          {!hasMindmapForCodes ? (
-            <span className="ml-0 sm:ml-1 text-amber-800/90">· belum ada untuk kode ini</span>
-          ) : null}
-        </p>
-
-        <div id="ringkasan-riasec" className="scroll-mt-6 mt-6 border-t border-stone-100 pt-6">
-          <RiasecAllCategoriesSection ranked={ranked} previewCount={3} embedded />
+        <div id="ringkasan-riasec" className="scroll-mt-6 mt-5 border-t border-stone-100 pt-5">
+          <RiasecAllCategoriesSection
+            ranked={ranked}
+            previewCount={3}
+            embedded
+            compact
+          />
         </div>
 
-        <div id="mindmap-roadmap" className="scroll-mt-6 mt-6 border-t border-stone-100 pt-6">
-          <h2 className="text-base font-semibold text-stone-900 sm:text-lg">Mindmap & peta belajar</h2>
-          <p className="mt-1 text-xs text-stone-600 sm:text-sm">
-            Kombinasi{" "}
-            <span className="font-mono font-semibold text-stone-800">{topCodes.join("")}</span> · buka / buat dari
-            tombol di bawah.
+        <div id="mindmap-roadmap" className="scroll-mt-6 mt-5 border-t border-stone-100 pt-5">
+          <h2 className="text-sm font-semibold text-stone-900">Peta jalan</h2>
+          <p className="mt-0.5 text-xs text-stone-500">
+            {hasMindmapForCodes ? (
+              <>
+                Mindmap untuk <span className="font-mono font-medium text-stone-700">{topCodes.join("")}</span>
+              </>
+            ) : (
+              <>Belum ada mindmap · buat di peta jalan</>
+            )}
           </p>
 
         {matchingRoadmaps.length > 0 ? (
-          <ul className="mt-3 divide-y divide-stone-100 rounded-xl border border-stone-100 bg-stone-50/50">
+          <ul className="mt-2 divide-y divide-stone-100 rounded-lg border border-stone-100 bg-stone-50/50">
             {matchingRoadmaps.slice(0, 3).map((rm) => (
               <li key={rm.createdAtMs}>
                 <Link
                   href={`/roadmap?viewAt=${rm.createdAtMs}`}
-                  className="flex items-center justify-between gap-3 px-3 py-2.5 text-xs transition hover:bg-white sm:px-4 sm:text-sm"
+                  className="flex items-center justify-between gap-2 px-2.5 py-2 text-xs transition hover:bg-white sm:px-3 sm:text-sm"
                 >
-                  <span className="min-w-0 font-medium text-stone-900">
-                    <span className="block truncate">
+                  <span className="min-w-0 text-stone-800">
+                    <span className="font-medium tabular-nums">
                       {formatHistoryChip(rm.createdAtMs)}
                     </span>
-                    <span className="mt-0.5 block text-xs font-normal text-stone-500">
-                      Usia {rm.age} · kode{" "}
-                      <span className="font-mono font-semibold text-stone-700">
-                        {(rm.topCodes ?? []).slice(0, 3).join("")}
-                      </span>
-                    </span>
+                    <span className="text-stone-500"> · usia {rm.age}</span>
                   </span>
-                  <span className="shrink-0 text-xs font-semibold text-teal-800">
-                    Buka →
+                  <span className="shrink-0 font-semibold text-teal-800">
+                    →
                   </span>
                 </Link>
               </li>
             ))}
           </ul>
-        ) : (
-          <p className="mt-3 rounded-xl border border-dashed border-stone-200 bg-stone-50/60 px-3 py-2.5 text-xs text-stone-600 sm:text-sm">
-            Belum ada mindmap untuk kombinasi ini.
-          </p>
-        )}
+        ) : null}
 
         {matchingRoadmaps.length > 3 ? (
-          <p className="mt-2 text-[11px] text-stone-500">
-            +{matchingRoadmaps.length - 3} mindmap lain untuk kode ini — kelola lewat{" "}
-            <Link href={roadmapWithCodesHref} className="font-semibold text-teal-800 underline underline-offset-2">
+          <p className="mt-1.5 text-[11px] text-stone-500">
+            +{matchingRoadmaps.length - 3} lainnya —{" "}
+            <Link href={roadmapWithCodesHref} className="font-medium text-teal-800 underline underline-offset-2">
               peta jalan
             </Link>
-            .
           </p>
         ) : null}
 
-        <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
-          {newestMatchingRoadmap ? (
-            <Link
-              href={`/roadmap?viewAt=${newestMatchingRoadmap.createdAtMs}`}
-              className="inline-flex h-11 items-center justify-center rounded-xl bg-teal-700 px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-800 sm:min-w-[200px]"
-            >
-              Buka mindmap terbaru
-            </Link>
-          ) : (
+        {!newestMatchingRoadmap ? (
+          <div className="mt-3">
             <Link
               href={roadmapWithCodesHref}
-              className="inline-flex h-11 items-center justify-center rounded-xl bg-teal-700 px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-800 sm:min-w-[200px]"
+              className="inline-flex h-10 items-center justify-center rounded-xl bg-teal-700 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-800"
             >
-              Buat mindmap pertama
+              Buat mindmap
             </Link>
-          )}
-          <Link
-            href={roadmapWithCodesHref}
-            className="inline-flex h-11 items-center justify-center rounded-xl border border-stone-200 bg-white px-5 text-sm font-semibold text-stone-800 shadow-sm transition hover:border-teal-200 hover:bg-teal-50/50 sm:min-w-[200px]"
-          >
-            Halaman peta jalan
-          </Link>
-        </div>
+          </div>
+        ) : null}
 
-        <p className="mt-4 text-center text-xs text-stone-500 sm:text-left">
-          <Link
-            href="/tes-minat"
-            className="font-medium text-teal-800 underline decoration-teal-800/30 underline-offset-2 hover:decoration-teal-800"
-          >
-            Ingin memperbarui hasil?
-          </Link>{" "}
-          Kamu bisa kerjakan tes minat lagi kapan saja.
+        <p className="mt-3 text-center text-xs text-stone-500 sm:text-left">
+          <Link href="/tes-minat" className="font-medium text-teal-800 underline underline-offset-2">
+            Tes ulang
+          </Link>
         </p>
         </div>
       </section>

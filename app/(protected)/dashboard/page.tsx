@@ -91,14 +91,15 @@ export default function DashboardPage() {
         })}
       </div>
 
-      <div className="flex justify-center pb-2">
+      <p className="pb-2 text-center text-sm text-stone-600">
         <Link
           href="/hasil"
-          className="inline-flex items-center justify-center rounded-2xl border border-teal-200/90 bg-white/90 px-6 py-3 text-sm font-semibold text-teal-800 shadow-sm transition hover:border-teal-300 hover:bg-teal-50 hover:shadow-md"
+          className="inline-flex items-center gap-0.5 font-semibold text-teal-800 underline decoration-teal-800/35 underline-offset-2 transition hover:text-teal-900 hover:decoration-teal-900"
         >
-          Lihat hasil tes terakhir
+          Ringkasan hasil tes
+          <ChevronRight className="h-4 w-4" aria-hidden />
         </Link>
-      </div>
+      </p>
     </div>
   );
 }
