@@ -28,6 +28,14 @@ const cards = [
     gradient: "from-emerald-500 to-teal-700",
     ring: "group-hover:ring-emerald-200/80",
   },
+  {
+    href: "/cv-percobaan",
+    title: "CV (percobaan)",
+    desc: "Area eksperimen untuk versi CV yang lebih rapi dan modern.",
+    icon: FileText,
+    gradient: "from-indigo-500 to-cyan-600",
+    ring: "group-hover:ring-indigo-200/80",
+  },
 ] as const;
 
 export default function DashboardPage() {

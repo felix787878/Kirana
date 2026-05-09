@@ -42,6 +42,23 @@ export type NarrativeSelf = {
   helpTarget?: string;
 };
 
+export type RiasecTestHistoryEntry = {
+  /** epoch ms */
+  createdAtMs: number;
+  scores: RiasecScores;
+  topCodes: RiasecCode[];
+  /** Kunci id soal sebagai string agar kompatibel dengan Firestore */
+  testAnswers?: Record<string, string> | null;
+};
+
+export type RoadmapHistoryEntry = {
+  /** epoch ms */
+  createdAtMs: number;
+  topCodes: RiasecCode[];
+  age: number;
+  text: string;
+};
+
 /** Dokumen `users/{uid}` di Firestore */
 export type UserDocument = {
   name?: string;
@@ -50,6 +67,10 @@ export type UserDocument = {
   topRiasecCodes?: RiasecCode[] | null;
   /** Kunci id soal sebagai string agar kompatibel dengan Firestore */
   testAnswers?: Record<string, string> | null;
+  /** Histori 5 hasil tes terbaru (paling baru di depan) */
+  riasecHistory?: RiasecTestHistoryEntry[] | null;
+  /** Histori mindmap/roadmap yang pernah di-generate */
+  roadmapHistory?: RoadmapHistoryEntry[] | null;
   cv?: UserCvData | null;
   /** Narasi diri untuk personalisasi saran AI */
   narrativeSelf?: NarrativeSelf | null;
