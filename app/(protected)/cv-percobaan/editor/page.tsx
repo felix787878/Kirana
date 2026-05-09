@@ -210,13 +210,8 @@ export default function CvPercobaanEditorPage() {
               setPostalCode(target.postalCode || "17148");
               setPhone(target.phone || cv.phone || "+62 812 3456 7890");
               setEmail(target.email || cv.email || "contoh@email.com");
-<<<<<<< HEAD
-              setSummaryText(target.summaryText || "");
-              setSkillsText(target.skillsText || "");
-=======
               setSummaryText(target.summaryText || cv.summary || "");
               setSkillsText(target.skillsText || (Array.isArray(cv.skills) ? cv.skills.join(", ") : ""));
->>>>>>> 33d5b9109b780a4e0aaf2ff5f4312507abb4abc8
               setExperienceText(target.experienceText || "");
               setEducationText(target.educationText || "");
               if (target.languageItems?.length) setLanguageItems(target.languageItems);
