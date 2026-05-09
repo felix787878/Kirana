@@ -1,19 +1,20 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
 import { LoaderFive } from "@/components/ui/loader";
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
   const { user, loading, configError } = useAuth();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (!loading && !configError && !user) {
-      router.replace("/auth");
-    }
-  }, [loading, user, router, configError]);
+  const pathname = usePathname();
+  const allowGuest =
+    pathname === "/dashboard" ||
+    pathname === "/tes-minat" ||
+    pathname === "/roadmap" ||
+    pathname === "/cv-maker" ||
+    pathname === "/cv-percobaan" ||
+    pathname === "/cv-percobaan/editor";
 
   if (configError) {
     return (
@@ -32,7 +33,39 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (!user) return null;
+  if (!user && !allowGuest) {
+    const next = pathname?.startsWith("/") ? pathname : "/dashboard";
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-kirana-shell px-4">
+        <div className="w-full max-w-md rounded-2xl border border-stone-200 bg-white p-6 text-center shadow-sm">
+          <h1 className="text-lg font-semibold text-stone-900">
+            Login dulu untuk lanjut
+          </h1>
+          <p className="mt-2 text-sm leading-relaxed text-stone-600">
+            Fitur ini menyimpan progres dan histori, jadi kamu perlu login agar
+            datamu aman dan bisa dibuka lagi kapan saja.
+          </p>
+          <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:justify-center">
+            <Link
+              href={`/auth?mode=login&next=${encodeURIComponent(next)}`}
+              className="inline-flex h-11 items-center justify-center rounded-xl bg-teal-700 px-5 text-sm font-semibold text-white hover:bg-teal-800"
+            >
+              Login
+            </Link>
+            <Link
+              href="/dashboard"
+              className="inline-flex h-11 items-center justify-center rounded-xl border border-stone-200 bg-white px-5 text-sm font-semibold text-stone-700 hover:bg-stone-50"
+            >
+              Kembali
+            </Link>
+          </div>
+          <div className="mt-4 text-xs text-stone-500">
+            Belum punya akun? Kamu bisa daftar di halaman login.
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return <>{children}</>;
 }

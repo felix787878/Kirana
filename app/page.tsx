@@ -72,7 +72,7 @@ export default function LandingPage() {
           </p>
 
           <Link
-            href={user ? "/dashboard" : "/auth"}
+            href="/dashboard"
             className="mt-8 inline-flex h-12 items-center justify-center rounded-xl bg-amber-500 px-10 text-sm font-semibold text-white shadow-lg transition hover:bg-amber-600"
           >
             Mulai

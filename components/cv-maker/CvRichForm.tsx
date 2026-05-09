@@ -74,7 +74,9 @@ export function CvRichForm({ data, onChange }: Props) {
 
       <div className={paperOuter}>
         <div className="border-b border-slate-200 bg-slate-50/90 px-3 py-2">
-          <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-600">Data utama</h2>
+          <span className="text-xs font-semibold uppercase tracking-wide text-slate-600">
+            &nbsp;
+          </span>
         </div>
         <div className="divide-y divide-slate-200">
           <PaperRow label="Nama">

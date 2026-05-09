@@ -97,9 +97,25 @@ const IMAGE_BY_CODE: Record<RiasecCode, string> = {
   S: "/Social.svg",
 };
 
+function formatHistoryLabel(createdAtMs: number) {
+  try {
+    return new Date(createdAtMs).toLocaleString("id-ID", {
+      weekday: "short",
+      year: "numeric",
+      month: "short",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  } catch {
+    return String(createdAtMs);
+  }
+}
+
 export default function HasilPage() {
   const { user } = useAuth();
   const [doc, setDoc] = useState<UserDocument | null | undefined>(undefined);
+  const [selectedAt, setSelectedAt] = useState<number | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -107,11 +123,39 @@ export default function HasilPage() {
     return () => unsub();
   }, [user]);
 
+  useEffect(() => {
+    const history = doc?.riasecHistory ?? null;
+    if (!history?.length) return;
+    if (selectedAt !== null) return;
+    const first = history
+      .filter(Boolean)
+      .sort((a, b) => b.createdAtMs - a.createdAtMs)[0];
+    if (first?.createdAtMs) setSelectedAt(first.createdAtMs);
+  }, [doc, selectedAt]);
+
   if (doc === undefined) {
     return <HasilLoadingSkeleton />;
   }
 
-  if (!doc?.riasecScores || !doc.topRiasecCodes?.length) {
+  const history = (doc?.riasecHistory ?? [])
+    .filter(Boolean)
+    .sort((a, b) => b.createdAtMs - a.createdAtMs)
+    .slice(0, 5);
+
+  const fallbackScores = doc?.riasecScores ?? null;
+  const fallbackTopCodes = (doc?.topRiasecCodes ?? null)?.filter(Boolean) ?? null;
+
+  const selected =
+    (selectedAt !== null
+      ? history.find((h) => h.createdAtMs === selectedAt)
+      : null) ?? history[0];
+
+  const scores = selected?.scores ?? fallbackScores;
+  const topCodes = ((selected?.topCodes ?? fallbackTopCodes) as RiasecCode[] | null)
+    ?.filter(Boolean)
+    .slice(0, 3) ?? null;
+
+  if (!scores || !topCodes?.length) {
     return (
       <div className="space-y-4 rounded-2xl border border-stone-200 bg-white p-6 text-center shadow-sm">
         <h1 className="text-lg font-semibold text-stone-900">
@@ -131,12 +175,15 @@ export default function HasilPage() {
     );
   }
 
-  const scores = doc.riasecScores;
   const ranked = rankRiasecScores(scores);
-  const topCodes = (doc.topRiasecCodes.filter(Boolean) as RiasecCode[]).slice(
-    0,
-    3
-  );
+  const roadmapHistory = (doc?.roadmapHistory ?? []).filter(Boolean);
+  const matchingRoadmaps = roadmapHistory
+    .filter((r) => {
+      const a = (r.topCodes ?? []).slice(0, 3).join(",");
+      const b = topCodes.slice(0, 3).join(",");
+      return a === b;
+    })
+    .sort((a, b) => b.createdAtMs - a.createdAtMs);
 
   const careerTexts = topCodes
     .flatMap((code) => CAREERS_BY_CODE[code] ?? [])
@@ -155,6 +202,37 @@ export default function HasilPage() {
               sering selaras.
             </p>
           </div>
+
+          {history.length > 1 && (
+            <div className="rounded-2xl border border-stone-200 bg-stone-50/60 p-4">
+              <p className="text-sm font-semibold text-stone-900">
+                Histori hasil tes (5 terbaru)
+              </p>
+              <p className="mt-1 text-xs text-stone-600">
+                Pilih tes yang ingin kamu lihat.
+              </p>
+              <div className="mt-3">
+                <label htmlFor="riasec-history" className="sr-only">
+                  Pilih histori tes
+                </label>
+                <select
+                  id="riasec-history"
+                  value={selected?.createdAtMs ?? history[0]?.createdAtMs ?? ""}
+                  onChange={(e) => setSelectedAt(Number(e.target.value))}
+                  className="w-full rounded-xl border border-stone-200 bg-white px-3 py-2.5 text-sm text-stone-900 outline-none focus:border-teal-300 focus:ring-2 focus:ring-teal-600/25"
+                >
+                  {history.map((h) => (
+                    <option key={h.createdAtMs} value={h.createdAtMs}>
+                      {formatHistoryLabel(h.createdAtMs)} — {(h.topCodes ?? [])
+                        .filter(Boolean)
+                        .slice(0, 3)
+                        .join("")}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          )}
 
           <ul className="grid gap-2 sm:grid-cols-2 sm:gap-x-6 sm:gap-y-2">
             {careerTexts.map((text, i) => (
@@ -231,6 +309,39 @@ export default function HasilPage() {
 
       <RiasecAllCategoriesSection ranked={ranked} />
 
+      {matchingRoadmaps.length > 0 && (
+        <section className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm sm:p-6">
+          <h2 className="text-lg font-semibold text-stone-900">
+            Mindmap yang pernah dibuat
+          </h2>
+          <p className="mt-1 text-sm text-stone-600">
+            Kamu sudah pernah generate mindmap untuk kombinasi kepribadian ini.
+          </p>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            {matchingRoadmaps.slice(0, 3).map((rm) => (
+              <Link
+                key={rm.createdAtMs}
+                href={`/roadmap?viewAt=${rm.createdAtMs}`}
+                className="rounded-2xl border border-stone-200 bg-stone-50/70 p-4 transition hover:border-teal-200 hover:bg-teal-50/40"
+              >
+                <p className="text-sm font-semibold text-stone-900">
+                  {formatHistoryLabel(rm.createdAtMs)}
+                </p>
+                <p className="mt-1 text-xs text-stone-600">
+                  Usia: <span className="font-medium">{rm.age}</span> • Kode:{" "}
+                  <span className="font-semibold">
+                    {(rm.topCodes ?? []).slice(0, 3).join("")}
+                  </span>
+                </p>
+                <p className="mt-2 text-xs font-semibold text-teal-800">
+                  Buka mindmap →
+                </p>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <Link
           href="/tes-minat"
@@ -239,10 +350,10 @@ export default function HasilPage() {
           Ulangi tes
         </Link>
         <Link
-          href="/roadmap"
+          href={`/roadmap?codes=${encodeURIComponent(topCodes.join(","))}`}
           className="inline-flex h-11 w-full items-center justify-center rounded-xl bg-teal-700 px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-800 sm:w-auto"
         >
-          Buat peta jalan karier
+          Buat peta jalan (dari hasil ini)
         </Link>
       </div>
     </div>
