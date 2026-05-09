@@ -210,8 +210,8 @@ export default function CvPercobaanEditorPage() {
               setPostalCode(target.postalCode || "17148");
               setPhone(target.phone || cv.phone || "+62 812 3456 7890");
               setEmail(target.email || cv.email || "contoh@email.com");
-              setSummaryText(target.summaryText || cv.summary || "");
-              setSkillsText(target.skillsText || (Array.isArray(cv.skills) ? cv.skills.join(", ") : ""));
+              setSummaryText(target.summaryText || "");
+              setSkillsText(target.skillsText || "");
               setExperienceText(target.experienceText || "");
               setEducationText(target.educationText || "");
               if (target.languageItems?.length) setLanguageItems(target.languageItems);
@@ -363,28 +363,30 @@ export default function CvPercobaanEditorPage() {
   }
 
   function buildHistoryEntry(updatedAtMs: number): CvHistoryEntry {
-    const cv = normalizeUserCv({
-      fullName: fullName || "Siapa ya",
-      city,
-      province,
-      postalCode,
-      phone,
-      email,
-      summary: summaryText || PROFILE_SUGGESTIONS[0],
-      skills: skillsText
-        .split(",")
-        .map((skill) => skill.trim())
-        .filter(Boolean),
-    });
+    const cv = normalizeUserCv(undefined);
+    cv.fullName = fullName || "Siapa ya";
+    cv.phone = phone;
+    cv.email = email;
+    cv.location = [city, province, postalCode].filter(Boolean).join(", ");
+    cv.headline = summaryText || PROFILE_SUGGESTIONS[0];
     cv.sections = cv.sections.map((section) => {
-      if (section.key === "experience") {
-        const entries = [...section.entries];
-        if (entries[0]) entries[0].contentText = experienceText;
+      const title = section.title.toLowerCase();
+      if (title.includes("pengalaman")) {
+        const entries = section.entries.map((entry, idx) =>
+          idx === 0 && entry.kind === "experience" ? { ...entry, summary: experienceText } : entry
+        );
         return { ...section, entries };
       }
-      if (section.key === "education") {
-        const entries = [...section.entries];
-        if (entries[0]) entries[0].contentText = educationText;
+      if (title.includes("pendidikan")) {
+        const entries = section.entries.map((entry, idx) =>
+          idx === 0 && entry.kind === "education" ? { ...entry, summary: educationText } : entry
+        );
+        return { ...section, entries };
+      }
+      if (title.includes("keahlian")) {
+        const entries = section.entries.map((entry, idx) =>
+          idx === 0 && entry.kind === "one_line" ? { ...entry, details: skillsText } : entry
+        );
         return { ...section, entries };
       }
       return section;

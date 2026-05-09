@@ -341,7 +341,10 @@ export default function CvPercobaanPage() {
                 </div>
               </article>
             ) : null}
-            {history.slice(0, MAX_HISTORY).map((item) => (
+            {history.slice(0, MAX_HISTORY).map((item) => {
+              const historyPhotoSrc = getHistoryPhotoSrc(item);
+              const pdfPhotoSrc = typeof historyPhotoSrc === "string" ? historyPhotoSrc : historyPhotoSrc.src;
+              return (
               <article
                 key={item.id}
                 className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
@@ -349,7 +352,7 @@ export default function CvPercobaanPage() {
                 <div className="flex h-52 items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100">
                   <div className="relative h-40 w-28 overflow-hidden rounded-md border border-slate-300 bg-white shadow-sm">
                     <Image
-                      src={getHistoryPhotoSrc(item)}
+                      src={historyPhotoSrc}
                       alt={`Foto CV ${item.title}`}
                       fill
                       sizes="112px"
@@ -381,7 +384,7 @@ export default function CvPercobaanPage() {
                         <CvPercobaanPdfDocument
                           accentColor={COLOR_OPTIONS.find((opt) => opt.id === (item.accentId ?? "teal"))?.hex ?? "#0EA5A6"}
                           {...getPercobaanPdfProps(item)}
-                          photoSrc={typeof getHistoryPhotoSrc(item) === "string" ? getHistoryPhotoSrc(item) : getHistoryPhotoSrc(item).src}
+                          photoSrc={pdfPhotoSrc}
                           languageItems={item.languageItems ?? []}
                           certificationText={item.certificationText}
                           showLanguages={Boolean(item.extraSections?.includes("bahasa"))}
@@ -406,7 +409,8 @@ export default function CvPercobaanPage() {
                   </div>
                 </div>
               </article>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}

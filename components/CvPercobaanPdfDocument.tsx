@@ -218,12 +218,39 @@ function ContactIcon({
 
 function getExperienceText(cv: UserCvData) {
   if (!Array.isArray(cv?.sections)) return "";
-  return cv.sections.find((section) => section.key === "experience")?.entries?.[0]?.contentText ?? "";
+  const section = cv.sections.find((item) => item.title.toLowerCase().includes("pengalaman"));
+  const firstEntry = section?.entries?.[0];
+  return firstEntry && firstEntry.kind === "experience" ? firstEntry.summary ?? "" : "";
 }
 
 function getEducationText(cv: UserCvData) {
   if (!Array.isArray(cv?.sections)) return "";
-  return cv.sections.find((section) => section.key === "education")?.entries?.[0]?.contentText ?? "";
+  const section = cv.sections.find((item) => item.title.toLowerCase().includes("pendidikan"));
+  const firstEntry = section?.entries?.[0];
+  return firstEntry && firstEntry.kind === "education" ? firstEntry.summary ?? "" : "";
+}
+
+function getSkills(cv: UserCvData) {
+  if (!Array.isArray(cv?.sections)) return [];
+  const section = cv.sections.find((item) => item.title.toLowerCase().includes("keahlian"));
+  const firstEntry = section?.entries?.[0];
+  if (!firstEntry || firstEntry.kind !== "one_line") return [];
+  return firstEntry.details
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function splitLocation(location?: string) {
+  const parts = (location ?? "")
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+  return {
+    city: parts[0] ?? "",
+    province: parts[1] ?? "",
+    postalCode: parts[2] ?? "",
+  };
 }
 
 export function CvPercobaanPdfDocument({
@@ -268,11 +295,7 @@ export function CvPercobaanPdfDocument({
                     style={{
                       width: "100%",
                       height: "100%",
-                      transform: [
-                        { translateX: photoOffsetX },
-                        { translateY: photoOffsetY },
-                        { scale: photoScale },
-                      ],
+                      transform: `translate(${photoOffsetX}px, ${photoOffsetY}px) scale(${photoScale})`,
                     }}
                   />
                 </View>
@@ -304,10 +327,11 @@ export function CvPercobaanPdfDocument({
                       {Array.from({ length: 4 }).map((_, barIdx) => (
                         <View
                           key={`${item.name}-${barIdx}`}
-                          style={[
-                            styles.languageBar,
-                            barIdx < (LANGUAGE_LEVEL_SCORE[item.level] ?? 1) ? styles.languageBarActive : null,
-                          ]}
+                          style={
+                            barIdx < (LANGUAGE_LEVEL_SCORE[item.level] ?? 1)
+                              ? [styles.languageBar, styles.languageBarActive]
+                              : styles.languageBar
+                          }
                         />
                       ))}
                     </View>
@@ -394,16 +418,17 @@ export function CvPercobaanPdfDocument({
 }
 
 export function mapCvToPercobaanPdfProps(cv: UserCvData) {
+  const loc = splitLocation(cv?.location);
   return {
     fullName: cv?.fullName ?? "",
-    city: cv?.city ?? "",
-    province: cv?.province ?? "",
-    postalCode: cv?.postalCode ?? "",
+    city: loc.city,
+    province: loc.province,
+    postalCode: loc.postalCode,
     phone: cv?.phone ?? "",
     email: cv?.email ?? "",
-    summary: cv?.summary ?? "",
+    summary: cv?.headline ?? "",
     experience: getExperienceText(cv),
     education: getEducationText(cv),
-    skills: Array.isArray(cv?.skills) ? cv.skills.filter(Boolean) : [],
+    skills: getSkills(cv),
   };
 }

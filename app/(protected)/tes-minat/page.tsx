@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { RIASEC_QUESTIONS } from "@/lib/questions";
+import { RIASEC_QUESTIONS, type Question } from "@/lib/questions";
 import {
   scoreRiasecAnswers,
   topRiasecCategories,
@@ -84,7 +84,7 @@ export default function TesMinatPage() {
     const byId = new Map(RIASEC_QUESTIONS.map((qq) => [qq.id, qq]));
     const restored = draft.orderedQuestionIds
       .map((id) => byId.get(id))
-      .filter(Boolean);
+      .filter((q): q is Question => Boolean(q));
     if (restored.length !== RIASEC_QUESTIONS.length) return false;
     setOrderedQuestions(restored);
     setAnswers(draft.answers ?? {});
