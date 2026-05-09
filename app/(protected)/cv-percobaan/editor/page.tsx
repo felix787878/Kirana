@@ -28,8 +28,12 @@ type CvHistoryEntry = {
   accentId?: string;
   photoPresetId?: string;
   photoUploadDataUrl?: string;
+  photoScale?: number;
+  photoOffsetX?: number;
+  photoOffsetY?: number;
   languageItems?: Array<{ name: string; level: string }>;
   certificationText?: string;
+  hobbyText?: string;
   city?: string;
   province?: string;
   postalCode?: string;
@@ -86,9 +90,17 @@ const CERTIFICATION_SUGGESTIONS = [
   "Sertifikasi Digital Marketing Fundamental",
 ];
 
+const HOBBY_SUGGESTIONS = [
+  "Membaca buku nonfiksi",
+  "Olahraga (lari / futsal / badminton)",
+  "Desain / menggambar",
+  "Memasak sederhana",
+];
+
 const EXTRA_SECTION_OPTIONS = [
   { id: "bahasa", label: "Bahasa" },
   { id: "sertifikasi", label: "Sertifikasi" },
+  { id: "hobi", label: "Hobi" },
 ] as const;
 
 const LANGUAGE_LEVELS = ["Pemula", "Menengah", "Mahir", "Native"] as const;
@@ -129,12 +141,16 @@ export default function CvPercobaanEditorPage() {
   const [skillsText, setSkillsText] = useState("");
   const [summaryText, setSummaryText] = useState("");
   const [certificationText, setCertificationText] = useState("");
+  const [hobbyText, setHobbyText] = useState("");
   const [extraSections, setExtraSections] = useState<string[]>([]);
   const [languageOptions, setLanguageOptions] = useState<string[]>(["Indonesia", "Inggris"]);
   const [languageItems, setLanguageItems] = useState<Array<{ name: string; level: string }>>([]);
   const [activeStep, setActiveStep] = useState(0);
   const [selectedPresetId, setSelectedPresetId] = useState<string>("jemo");
   const [uploadedPhotoDataUrl, setUploadedPhotoDataUrl] = useState<string | null>(null);
+  const [photoScale, setPhotoScale] = useState(1.15);
+  const [photoOffsetX, setPhotoOffsetX] = useState(0);
+  const [photoOffsetY, setPhotoOffsetY] = useState(0);
   const [isHydrated, setIsHydrated] = useState(false);
 
   const fullName = useMemo(() => `${firstName} ${surname}`.trim(), [firstName, surname]);
@@ -158,11 +174,15 @@ export default function CvPercobaanEditorPage() {
         skillsText,
         summaryText,
         certificationText,
+        hobbyText,
         extraSections,
         languageItems,
         activeStep,
         selectedPresetId,
         uploadedPhotoDataUrl,
+        photoScale,
+        photoOffsetX,
+        photoOffsetY,
         updatedAtMs: Date.now(),
       };
       localStorage.setItem(draftStorageKey, JSON.stringify(draft));
@@ -197,8 +217,12 @@ export default function CvPercobaanEditorPage() {
               if (target.languageItems?.length) setLanguageItems(target.languageItems);
               if (Array.isArray(target.extraSections)) setExtraSections(target.extraSections);
               if (target.certificationText) setCertificationText(target.certificationText);
+              if (target.hobbyText) setHobbyText(target.hobbyText);
               if (target.photoPresetId) setSelectedPresetId(target.photoPresetId);
               if (target.photoUploadDataUrl) setUploadedPhotoDataUrl(target.photoUploadDataUrl);
+              if (typeof target.photoScale === "number") setPhotoScale(target.photoScale);
+              if (typeof target.photoOffsetX === "number") setPhotoOffsetX(target.photoOffsetX);
+              if (typeof target.photoOffsetY === "number") setPhotoOffsetY(target.photoOffsetY);
             }
           }
         }
@@ -219,11 +243,15 @@ export default function CvPercobaanEditorPage() {
           skillsText: string;
           summaryText: string;
           certificationText: string;
+          hobbyText: string;
           extraSections: string[];
           languageItems: Array<{ name: string; level: string }>;
           activeStep: number;
           selectedPresetId: string;
           uploadedPhotoDataUrl: string | null;
+          photoScale: number;
+          photoOffsetX: number;
+          photoOffsetY: number;
         }>;
         if (typeof draft.firstName === "string") setFirstName(draft.firstName);
         if (typeof draft.surname === "string") setSurname(draft.surname);
@@ -237,6 +265,7 @@ export default function CvPercobaanEditorPage() {
         if (typeof draft.skillsText === "string") setSkillsText(draft.skillsText);
         if (typeof draft.summaryText === "string") setSummaryText(draft.summaryText);
         if (typeof draft.certificationText === "string") setCertificationText(draft.certificationText);
+        if (typeof draft.hobbyText === "string") setHobbyText(draft.hobbyText);
         if (Array.isArray(draft.extraSections)) setExtraSections(draft.extraSections);
         if (Array.isArray(draft.languageItems) && draft.languageItems.length > 0) setLanguageItems(draft.languageItems);
         if (typeof draft.activeStep === "number" && draft.activeStep >= 0 && draft.activeStep < STEPS.length) {
@@ -246,6 +275,9 @@ export default function CvPercobaanEditorPage() {
         if (typeof draft.uploadedPhotoDataUrl === "string" || draft.uploadedPhotoDataUrl === null) {
           setUploadedPhotoDataUrl(draft.uploadedPhotoDataUrl);
         }
+        if (typeof draft.photoScale === "number") setPhotoScale(draft.photoScale);
+        if (typeof draft.photoOffsetX === "number") setPhotoOffsetX(draft.photoOffsetX);
+        if (typeof draft.photoOffsetY === "number") setPhotoOffsetY(draft.photoOffsetY);
       }
     } catch {
       // ignore
@@ -300,6 +332,12 @@ export default function CvPercobaanEditorPage() {
 
   function appendLine(current: string, text: string) {
     return current.trim() ? `${current}\n• ${text}` : `• ${text}`;
+  }
+
+  function appendPlainLine(current: string, text: string) {
+    const next = text.trim();
+    if (!next) return current;
+    return current.trim() ? `${current}\n${next}` : next;
   }
 
   function toggleExtraSection(id: string) {
@@ -358,8 +396,12 @@ export default function CvPercobaanEditorPage() {
       accentId: accentKey,
       photoPresetId: selectedPresetId,
       photoUploadDataUrl: uploadedPhotoDataUrl ?? undefined,
+      photoScale,
+      photoOffsetX,
+      photoOffsetY,
       languageItems,
       certificationText,
+      hobbyText,
       city,
       province,
       postalCode,
@@ -403,17 +445,28 @@ export default function CvPercobaanEditorPage() {
     skillsText,
     summaryText,
     certificationText,
+    hobbyText,
     extraSections,
     languageItems,
     activeStep,
     selectedPresetId,
     uploadedPhotoDataUrl,
+    photoScale,
+    photoOffsetX,
+    photoOffsetY,
     draftStorageKey,
     isHydrated,
   ]);
 
   return (
     <div className="space-y-4">
+      <button
+        type="button"
+        onClick={() => router.push("/cv-percobaan")}
+        className="inline-flex items-center gap-1 text-sm font-semibold text-teal-800 transition hover:text-teal-950"
+      >
+        ← Kembali ke histori
+      </button>
       <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white p-2 shadow-sm">
         <div className="flex min-w-max items-center gap-2">
           {STEPS.map((step, idx) => {
@@ -446,9 +499,20 @@ export default function CvPercobaanEditorPage() {
           <div className="grid min-h-[430px] grid-cols-[95px_minmax(0,1fr)]">
             <div className="px-2 py-3 text-white" style={{ backgroundColor: accent }}>
               <div className="mx-auto h-16 w-16 overflow-hidden rounded-full border-2 border-white/80">
-                <Image src={activePhotoSrc} alt="Foto profil CV" className="h-full w-full object-cover" width={96} height={96} unoptimized />
+                <Image
+                  src={activePhotoSrc}
+                  alt="Foto profil CV"
+                  className="h-full w-full object-cover"
+                  width={96}
+                  height={96}
+                  unoptimized
+                  style={{
+                    transform: `translate(${photoOffsetX}px, ${photoOffsetY}px) scale(${photoScale})`,
+                    transformOrigin: "center",
+                  }}
+                />
               </div>
-              <p className="mt-4 text-[10px] font-semibold tracking-[0.14em] text-white/90">SKILLS</p>
+              <p className="mt-4 text-[10px] font-semibold tracking-[0.14em] text-white/90">KETERAMPILAN</p>
               <ul className="mt-1.5 space-y-1 text-[10px] leading-relaxed text-white/95">
                 {(skillsText ? skillsText.split(",") : ["Komunikasi", "Administrasi", "Kerja tim"])
                   .map((s) => s.trim())
@@ -520,6 +584,12 @@ export default function CvPercobaanEditorPage() {
                     <p className="mt-1 line-clamp-2 text-[10px] text-slate-600">{certificationText || "Tambahkan sertifikasi bila ada."}</p>
                   </section>
                 ) : null}
+                {extraSections.includes("hobi") ? (
+                  <section>
+                    <h3 className="text-[11px] font-bold uppercase tracking-wide" style={{ color: accent }}>Hobi</h3>
+                    <p className="mt-1 line-clamp-2 text-[10px] text-slate-600">{hobbyText || "Tambahkan hobi bila ingin ditampilkan."}</p>
+                  </section>
+                ) : null}
               </div>
             </div>
           </div>
@@ -559,6 +629,61 @@ export default function CvPercobaanEditorPage() {
                       onChange={(e) => onUploadPhoto(e.target.files?.[0] ?? null)}
                     />
                   </label>
+                </div>
+
+                <div className="rounded-xl border border-slate-200 p-3">
+                  <p className="text-xs font-semibold text-slate-700">Atur posisi & ukuran foto</p>
+                  <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                    <label className="space-y-1">
+                      <span className="text-xs font-semibold text-slate-600">Zoom</span>
+                      <input
+                        type="range"
+                        min={1}
+                        max={2}
+                        step={0.05}
+                        value={photoScale}
+                        onChange={(e) => setPhotoScale(Number(e.target.value))}
+                        className="w-full"
+                      />
+                    </label>
+                    <div className="flex items-end justify-end gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setPhotoScale(1.15);
+                          setPhotoOffsetX(0);
+                          setPhotoOffsetY(0);
+                        }}
+                        className="inline-flex h-9 items-center rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                      >
+                        Reset
+                      </button>
+                    </div>
+                    <label className="space-y-1">
+                      <span className="text-xs font-semibold text-slate-600">Geser kiri/kanan</span>
+                      <input
+                        type="range"
+                        min={-24}
+                        max={24}
+                        step={1}
+                        value={photoOffsetX}
+                        onChange={(e) => setPhotoOffsetX(Number(e.target.value))}
+                        className="w-full"
+                      />
+                    </label>
+                    <label className="space-y-1">
+                      <span className="text-xs font-semibold text-slate-600">Geser atas/bawah</span>
+                      <input
+                        type="range"
+                        min={-24}
+                        max={24}
+                        step={1}
+                        value={photoOffsetY}
+                        onChange={(e) => setPhotoOffsetY(Number(e.target.value))}
+                        className="w-full"
+                      />
+                    </label>
+                  </div>
                 </div>
 
                 <div className="grid gap-3 sm:grid-cols-2">
@@ -638,7 +763,7 @@ export default function CvPercobaanEditorPage() {
               <div className="space-y-3">
                 <div className="space-y-2">
                   {PROFILE_SUGGESTIONS.map((item) => (
-                    <button key={item} type="button" onClick={() => setSummaryText((prev) => appendLine(prev, item))} className="inline-flex w-full items-center rounded-full border border-slate-300 px-3 py-2 text-left text-xs text-slate-700 hover:bg-slate-50">
+                    <button key={item} type="button" onClick={() => setSummaryText((prev) => appendPlainLine(prev, item))} className="inline-flex w-full items-center rounded-full border border-slate-300 px-3 py-2 text-left text-xs text-slate-700 hover:bg-slate-50">
                       + {item}
                     </button>
                   ))}
@@ -723,6 +848,33 @@ export default function CvPercobaanEditorPage() {
                     <label className="space-y-1">
                       <span className="text-xs font-semibold text-slate-600">Sertifikasi</span>
                       <textarea value={certificationText} onChange={(e) => setCertificationText(e.target.value)} rows={4} className="w-full rounded-lg border border-slate-300 p-2.5 text-xs outline-none focus:border-teal-400" />
+                    </label>
+                  </div>
+                ) : null}
+
+                {extraSections.includes("hobi") ? (
+                  <div className="space-y-2">
+                    <div className="flex flex-wrap gap-2">
+                      {HOBBY_SUGGESTIONS.map((item) => (
+                        <button
+                          key={item}
+                          type="button"
+                          onClick={() => setHobbyText((prev) => appendPlainLine(prev, item))}
+                          className="rounded-full border border-slate-300 px-3 py-1 text-xs text-slate-700 hover:bg-slate-50"
+                        >
+                          + {item}
+                        </button>
+                      ))}
+                    </div>
+                    <label className="space-y-1">
+                      <span className="text-xs font-semibold text-slate-600">Hobi</span>
+                      <textarea
+                        value={hobbyText}
+                        onChange={(e) => setHobbyText(e.target.value)}
+                        rows={4}
+                        className="w-full rounded-lg border border-slate-300 p-2.5 text-xs outline-none focus:border-teal-400"
+                        placeholder="Contoh: Membaca, futsal, menggambar..."
+                      />
                     </label>
                   </div>
                 ) : null}

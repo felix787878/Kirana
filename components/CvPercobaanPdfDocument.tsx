@@ -1,5 +1,7 @@
-import { Document, Image, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
+import { Document, Image, Page, Path, StyleSheet, Svg, Text, View } from "@react-pdf/renderer";
 import type { UserCvData } from "@/lib/user-document";
+import locationIcon from "@/app/Profil/location.png";
+import emailIcon from "@/app/Profil/email.png";
 
 type CvPercobaanPdfDocumentProps = {
   accentColor: string;
@@ -15,9 +17,14 @@ type CvPercobaanPdfDocumentProps = {
   skills: string[];
   languageItems?: Array<{ name: string; level: string }>;
   certificationText?: string;
+  hobbyText?: string;
   photoSrc?: string;
+  photoScale?: number;
+  photoOffsetX?: number;
+  photoOffsetY?: number;
   showLanguages?: boolean;
   showCertification?: boolean;
+  showHobby?: boolean;
 };
 
 const LANGUAGE_LEVEL_SCORE: Record<string, number> = {
@@ -174,28 +181,38 @@ function splitLines(text?: string) {
     .filter(Boolean);
 }
 
-function buildIconDataUri(path: string) {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#334155"><path d="${path}"/></svg>`;
-  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+function normalizeParagraph(text?: string) {
+  if (!text) return "";
+  return splitLines(text).join(" ").trim();
 }
-
-const LOCATION_ICON_URI = buildIconDataUri(
-  "M12 22s7-5.4 7-12a7 7 0 1 0-14 0c0 6.6 7 12 7 12Zm0-9.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"
-);
-const PHONE_ICON_URI = buildIconDataUri(
-  "M6.6 10.8a15.4 15.4 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.24 11.2 11.2 0 0 0 3.5.56 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.3a1 1 0 0 1 1 1c0 1.2.2 2.4.56 3.5a1 1 0 0 1-.24 1l-2 2.3Z"
-);
-const MAIL_ICON_URI = buildIconDataUri(
-  "M3 6.5A1.5 1.5 0 0 1 4.5 5h15A1.5 1.5 0 0 1 21 6.5v11a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 17.5v-11Zm1.8.5 7.2 5 7.2-5H4.8Zm14.7 10.2V8.8l-7 4.85a1 1 0 0 1-1.14 0l-7-4.85v8.4h14.2Z"
-);
 
 function ContactIcon({
   kind,
 }: {
   kind: "location" | "phone" | "mail";
 }) {
-  const src = kind === "location" ? LOCATION_ICON_URI : kind === "phone" ? PHONE_ICON_URI : MAIL_ICON_URI;
-  return <Image src={src} style={{ width: 10, height: 10 }} />;
+  if (kind === "phone") {
+    return (
+      <Svg viewBox="0 0 24 24" style={{ width: 10, height: 10 }}>
+        <Path
+          d="M6.6 10.8a15.4 15.4 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.24 11.2 11.2 0 0 0 3.5.56 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.3a1 1 0 0 1 1 1c0 1.2.2 2.4.56 3.5a1 1 0 0 1-.24 1l-2 2.3Z"
+          fill="#334155"
+        />
+      </Svg>
+    );
+  }
+
+  const src =
+    kind === "location"
+      ? locationIcon
+      : emailIcon;
+  const resolvedSrc =
+    typeof src === "string"
+      ? src
+      : typeof src === "object" && src && "src" in src
+      ? (src as { src: string }).src
+      : "";
+  return <Image src={resolvedSrc} style={{ width: 10, height: 10 }} />;
 }
 
 function getExperienceText(cv: UserCvData) {
@@ -222,13 +239,20 @@ export function CvPercobaanPdfDocument({
   skills,
   languageItems = [],
   certificationText,
+  hobbyText,
   photoSrc,
+  photoScale = 1.15,
+  photoOffsetX = 0,
+  photoOffsetY = 0,
   showLanguages = false,
   showCertification = false,
+  showHobby = false,
 }: CvPercobaanPdfDocumentProps) {
   const experienceLines = splitLines(experience);
   const educationLines = splitLines(education);
   const certificationLines = splitLines(certificationText);
+  const hobbyLines = splitLines(hobbyText);
+  const summaryParagraph = normalizeParagraph(summary);
 
   return (
     <Document>
@@ -238,7 +262,18 @@ export function CvPercobaanPdfDocument({
             <View style={{ alignItems: "center", marginBottom: 10 }}>
               {photoSrc ? (
                 <View style={styles.photoCircle}>
-                  <Image src={photoSrc} style={{ width: "100%", height: "100%" }} />
+                  <Image
+                    src={photoSrc}
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      transform: [
+                        { translateX: photoOffsetX },
+                        { translateY: photoOffsetY },
+                        { scale: photoScale },
+                      ],
+                    }}
+                  />
                 </View>
               ) : (
                 <View style={styles.logoCircle}>
@@ -248,7 +283,7 @@ export function CvPercobaanPdfDocument({
               <Text style={styles.logoCaption}>KIRANA CV</Text>
             </View>
 
-            <Text style={styles.sectionTitleSidebar}>SKILLS</Text>
+            <Text style={styles.sectionTitleSidebar}>KETERAMPILAN</Text>
             {(skills.length ? skills : ["Komunikasi", "Administrasi", "Kerja tim"])
               .slice(0, 8)
               .map((item, index) => (
@@ -280,6 +315,18 @@ export function CvPercobaanPdfDocument({
                 ))}
               </View>
             )}
+
+            {showHobby && !!hobbyLines.length && (
+              <View>
+                <Text style={[styles.sectionTitleSidebar, { marginTop: 14 }]}>HOBI</Text>
+                {hobbyLines.slice(0, 6).map((line, index) => (
+                  <View key={`hobby-${index}`} style={styles.bulletRow}>
+                    <Text style={styles.bulletDot}>-</Text>
+                    <Text style={styles.bulletText}>{line}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
           </View>
 
           <View style={styles.main}>
@@ -300,7 +347,7 @@ export function CvPercobaanPdfDocument({
             </View>
 
             <Text style={[styles.sectionTitleMain, { color: accentColor || "#0EA5A6" }]}>Profil</Text>
-            <Text style={styles.paragraph}>{summary || "Profil belum diisi."}</Text>
+            <Text style={styles.paragraph}>{summaryParagraph || "Profil belum diisi."}</Text>
 
             <Text style={[styles.sectionTitleMain, { color: accentColor || "#0EA5A6" }]}>Pengalaman</Text>
             {experienceLines.length ? (

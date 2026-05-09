@@ -29,8 +29,12 @@ type CvHistoryEntry = {
   accentId?: string;
   photoPresetId?: string;
   photoUploadDataUrl?: string;
+  photoScale?: number;
+  photoOffsetX?: number;
+  photoOffsetY?: number;
   languageItems?: Array<{ name: string; level: string }>;
   certificationText?: string;
+  hobbyText?: string;
   city?: string;
   province?: string;
   postalCode?: string;
@@ -118,6 +122,7 @@ function getPercobaanPdfProps(item: CvHistoryEntry) {
   const summary = (item.summaryText ?? "").trim();
   const experience = (item.experienceText ?? "").trim();
   const education = (item.educationText ?? "").trim();
+  const hobbyText = (item.hobbyText ?? "").trim();
   return {
     ...mapped,
     fullName: item.title || mapped.fullName,
@@ -130,6 +135,10 @@ function getPercobaanPdfProps(item: CvHistoryEntry) {
     experience: experience || mapped.experience || "",
     education: education || mapped.education || "",
     skills: parsedSkills.length > 0 ? parsedSkills : mapped.skills,
+    hobbyText,
+    photoScale: item.photoScale,
+    photoOffsetX: item.photoOffsetX,
+    photoOffsetY: item.photoOffsetY,
   };
 }
 
@@ -188,11 +197,18 @@ export default function CvPercobaanPage() {
 
   return (
     <div className="space-y-5">
+      <button
+        type="button"
+        onClick={() => router.back()}
+        className="inline-flex items-center gap-1 text-sm font-semibold text-teal-800 transition hover:text-teal-950"
+      >
+        ← Kembali
+      </button>
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">CV (percobaan)</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900">CV Kirana</h1>
           <p className="text-sm text-slate-600">
-            Versi eksperimen untuk pengelolaan CV dengan tampilan histori.
+            Susun CV dengan bagian fleksibel, simpan, lalu unduh PDF.
           </p>
         </div>
       </div>
@@ -370,6 +386,7 @@ export default function CvPercobaanPage() {
                           certificationText={item.certificationText}
                           showLanguages={Boolean(item.extraSections?.includes("bahasa"))}
                           showCertification={Boolean(item.extraSections?.includes("sertifikasi"))}
+                          showHobby={Boolean(item.extraSections?.includes("hobi"))}
                         />
                       }
                       fileName={`CV-${(item.title || "Kirana").replace(/[^\w\s-]/g, "").replace(/\s+/g, "-")}.pdf`}

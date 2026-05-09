@@ -31,7 +31,7 @@ export default function CvPercobaanTemplatePage() {
     <div className="space-y-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">CV (percobaan) - Template</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900">CV Kirana - Template</h1>
           <p className="text-sm text-slate-600">
             Pilih warna tema dulu, lalu lanjut ke tahap pengisian data.
           </p>
