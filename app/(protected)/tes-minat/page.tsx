@@ -226,7 +226,7 @@ export default function TesMinatPage() {
     } catch {
       sessionStorage.removeItem(PENDING_RIASEC_KEY);
     }
-  }, [autosaveHandled, searchParams, user]);
+  }, [autosaveHandled, searchParams, user, saveResult]);
 
   return (
     <div className="space-y-6">

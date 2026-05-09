@@ -428,6 +428,7 @@ export default function CvPercobaanEditorPage() {
     }
   }
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!isHydrated) return;
     persistDraft();

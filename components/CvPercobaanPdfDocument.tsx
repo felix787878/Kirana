@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/alt-text */
 import { Document, Image, Page, Path, StyleSheet, Svg, Text, View } from "@react-pdf/renderer";
 import type { UserCvData } from "@/lib/user-document";
 import locationIcon from "@/app/Profil/location.png";
