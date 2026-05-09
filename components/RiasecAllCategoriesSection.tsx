@@ -67,15 +67,40 @@ const RIASEC_LONG_DESCRIPTION: Record<RiasecCode, string> = {
 
 type Props = {
   ranked: RankedCategory[];
+  /** Tampilkan N kategori teratas dulu; sisanya lewat tombol "lihat semua". */
+  previewCount?: number;
+  /** Tanpa kartu terpisah; dipakai saat diletakkan di dalam wadah induk. */
+  embedded?: boolean;
 };
 
-export function RiasecAllCategoriesSection({ ranked }: Props) {
+export function RiasecAllCategoriesSection({
+  ranked,
+  previewCount,
+  embedded = false,
+}: Props) {
   const [openCode, setOpenCode] = useState<RiasecCode | null>(null);
+  const [showAllCategories, setShowAllCategories] = useState(false);
+
+  const usePreview =
+    typeof previewCount === "number" &&
+    previewCount > 0 &&
+    ranked.length > previewCount;
+  const visibleRanked =
+    usePreview && !showAllCategories ? ranked.slice(0, previewCount) : ranked;
+  const hiddenCount = usePreview ? ranked.length - previewCount : 0;
 
   return (
-    <section className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm sm:p-6">
+    <section
+      className={
+        embedded
+          ? "rounded-none border-0 bg-transparent p-0 shadow-none"
+          : "rounded-2xl border border-stone-200 bg-white p-4 shadow-sm sm:p-6"
+      }
+    >
       <h2 className="text-lg font-semibold text-stone-900">
-        Ringkasan semua kategori
+        {usePreview && !showAllCategories
+          ? "Detail tiga kategori teratas"
+          : "Ringkasan semua kategori"}
       </h2>
       <p className="mt-1 text-sm text-stone-600">
         Persentase menunjukkan seberapa kuat minatmu pada tiap tipe (dari skor
@@ -83,7 +108,7 @@ export function RiasecAllCategoriesSection({ ranked }: Props) {
       </p>
 
       <ul className="mt-6 space-y-5">
-        {ranked.map((row) => {
+        {visibleRanked.map((row) => {
           const code = row.code;
           const pct = riasecScoreToPercent(row.score);
           const style = BAR_STYLE[code];
@@ -157,6 +182,16 @@ export function RiasecAllCategoriesSection({ ranked }: Props) {
           );
         })}
       </ul>
+
+      {usePreview && !showAllCategories ? (
+        <button
+          type="button"
+          onClick={() => setShowAllCategories(true)}
+          className="mt-5 w-full rounded-xl border border-stone-200 bg-stone-50/80 py-2.5 text-sm font-semibold text-stone-700 transition hover:border-teal-200 hover:bg-teal-50/50 hover:text-teal-900"
+        >
+          Tampilkan {hiddenCount} kategori lainnya
+        </button>
+      ) : null}
     </section>
   );
 }

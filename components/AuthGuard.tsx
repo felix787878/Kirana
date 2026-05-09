@@ -13,8 +13,12 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     pathname === "/tes-minat" ||
     pathname === "/roadmap" ||
     pathname === "/cv-maker" ||
+    pathname === "/cv" ||
+    pathname === "/cv/editor" ||
+    pathname === "/cv/template" ||
     pathname === "/cv-percobaan" ||
-    pathname === "/cv-percobaan/editor";
+    pathname === "/cv-percobaan/editor" ||
+    pathname === "/cv-percobaan/template";
 
   if (configError) {
     return (

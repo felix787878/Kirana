@@ -1,5 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  async redirects() {
+    return [{ source: "/cv-percobaan", destination: "/cv", permanent: true }];
+  },
   transpilePackages: ["@react-pdf/renderer"],
   /** Windows / OneDrive: polling mengurangi masalah watcher lambat atau chunk 404 setelah sync. */
   webpack: (config, { dev, isServer }) => {

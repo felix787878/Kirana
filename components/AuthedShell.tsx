@@ -7,7 +7,9 @@ import { AuthGuard } from "@/components/AuthGuard";
 export function AuthedShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const wideMain =
-    pathname?.startsWith("/cv-maker") || pathname?.startsWith("/cv-percobaan");
+    pathname?.startsWith("/cv-maker") ||
+    pathname?.startsWith("/cv-percobaan") ||
+    pathname?.startsWith("/cv");
 
   return (
     <AuthGuard>

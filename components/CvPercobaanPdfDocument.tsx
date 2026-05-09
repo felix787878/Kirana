@@ -1,8 +1,10 @@
 /* eslint-disable jsx-a11y/alt-text */
-import { Document, Image, Page, Path, StyleSheet, Svg, Text, View } from "@react-pdf/renderer";
+import { Document, Font, Image, Page, Path, StyleSheet, Svg, Text, View } from "@react-pdf/renderer";
 import type { UserCvData } from "@/lib/user-document";
 import locationIcon from "@/app/Profil/location.png";
 import emailIcon from "@/app/Profil/email.png";
+
+Font.registerHyphenationCallback((word) => [word]);
 
 type CvPercobaanPdfDocumentProps = {
   accentColor: string;
@@ -37,42 +39,71 @@ const LANGUAGE_LEVEL_SCORE: Record<string, number> = {
 
 const styles = StyleSheet.create({
   page: {
-    padding: 24,
-    fontFamily: "Helvetica",
+    padding: 20,
+    fontFamily: "Times-Roman",
     fontSize: 10,
-    color: "#0f172a",
+    color: "#1e293b",
   },
   card: {
     borderWidth: 1,
-    borderColor: "#e2e8f0",
-    borderRadius: 10,
+    borderColor: "#cbd5e1",
+    borderRadius: 8,
     overflow: "hidden",
     flexDirection: "row",
     minHeight: 680,
   },
   sidebar: {
     width: "30%",
-    padding: 14,
+    padding: 12,
+    paddingTop: 10,
+    paddingLeft: 10,
     color: "#ffffff",
   },
   main: {
     width: "70%",
-    padding: 16,
+    padding: 18,
+    paddingTop: 16,
     backgroundColor: "#ffffff",
   },
-  sectionTitleSidebar: {
+  sidebarHr: {
+    width: "100%",
+    height: 1,
+    backgroundColor: "rgba(255,255,255,0.92)",
+    marginBottom: 6,
+  },
+  sidebarHrSpaced: {
+    marginTop: 12,
+  },
+  sidebarHrBelowPhoto: {
+    marginTop: 2,
+  },
+  mainHeaderRule: {
+    width: "100%",
+    height: 3,
+    backgroundColor: "#0f172a",
+    marginTop: 8,
+    marginBottom: 10,
+  },
+  mainSectionRule: {
+    width: "100%",
+    height: 1,
+    backgroundColor: "#334155",
     marginTop: 10,
     marginBottom: 6,
-    fontSize: 9,
+  },
+  sectionTitleSidebar: {
+    marginTop: 0,
+    marginBottom: 5,
+    fontSize: 8.5,
     fontFamily: "Helvetica-Bold",
-    letterSpacing: 1,
+    letterSpacing: 0.4,
+    textTransform: "uppercase",
   },
   logoCircle: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    borderWidth: 1.5,
-    borderColor: "#ffffff",
+    borderWidth: 0,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -80,8 +111,7 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    borderWidth: 1.5,
-    borderColor: "#ffffff",
+    borderWidth: 0,
     overflow: "hidden",
   },
   logoText: {
@@ -89,18 +119,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: "Helvetica-Bold",
   },
-  logoCaption: {
-    marginTop: 4,
-    fontSize: 7.5,
-    color: "#ffffff",
-    letterSpacing: 1.1,
-    fontFamily: "Helvetica-Bold",
-  },
   sectionTitleMain: {
     fontSize: 11,
     fontFamily: "Helvetica-Bold",
-    marginTop: 10,
-    marginBottom: 4,
+    marginTop: 0,
+    marginBottom: 5,
+    letterSpacing: 0.2,
   },
   line: {
     marginBottom: 4,
@@ -116,7 +140,8 @@ const styles = StyleSheet.create({
   },
   bulletText: {
     flex: 1,
-    lineHeight: 1.35,
+    lineHeight: 1.45,
+    fontFamily: "Times-Roman",
   },
   languageName: {
     fontSize: 9,
@@ -143,9 +168,11 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   name: {
-    fontSize: 24,
+    fontSize: 22,
     fontFamily: "Helvetica-Bold",
     textTransform: "uppercase",
+    letterSpacing: 0.5,
+    color: "#0f172a",
   },
   contact: {
     fontSize: 9,
@@ -154,14 +181,17 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 5,
+    fontFamily: "Times-Roman",
   },
   contactValue: {
     flex: 1,
+    fontFamily: "Times-Roman",
   },
   paragraph: {
-    fontSize: 9.5,
-    lineHeight: 1.45,
+    fontSize: 10,
+    lineHeight: 1.55,
     color: "#334155",
+    fontFamily: "Times-Roman",
   },
   footer: {
     position: "absolute",
@@ -269,7 +299,7 @@ export function CvPercobaanPdfDocument({
   certificationText,
   hobbyText,
   photoSrc,
-  photoScale = 1.15,
+  photoScale = 1,
   photoOffsetX = 0,
   photoOffsetY = 0,
   showLanguages = false,
@@ -293,9 +323,14 @@ export function CvPercobaanPdfDocument({
                   <Image
                     src={photoSrc}
                     style={{
-                      width: "100%",
-                      height: "100%",
+                      width: "108%",
+                      height: "108%",
+                      marginLeft: "-4%",
+                      marginTop: "-4%",
+                      objectFit: "cover",
+                      objectPosition: "center top",
                       transform: `translate(${photoOffsetX}px, ${photoOffsetY}px) scale(${photoScale})`,
+                      transformOrigin: "top",
                     }}
                   />
                 </View>
@@ -304,9 +339,9 @@ export function CvPercobaanPdfDocument({
                   <Text style={styles.logoText}>K</Text>
                 </View>
               )}
-              <Text style={styles.logoCaption}>KIRANA CV</Text>
             </View>
 
+            <View style={[styles.sidebarHr, styles.sidebarHrBelowPhoto]} />
             <Text style={styles.sectionTitleSidebar}>KETERAMPILAN</Text>
             {(skills.length ? skills : ["Komunikasi", "Administrasi", "Kerja tim"])
               .slice(0, 8)
@@ -319,7 +354,8 @@ export function CvPercobaanPdfDocument({
 
             {showLanguages && !!languageItems.length && (
               <View>
-                <Text style={[styles.sectionTitleSidebar, { marginTop: 14 }]}>BAHASA</Text>
+                <View style={[styles.sidebarHr, styles.sidebarHrSpaced]} />
+                <Text style={styles.sectionTitleSidebar}>BAHASA</Text>
                 {languageItems.slice(0, 4).map((item, index) => (
                   <View key={`${item.name}-${index}`} style={{ marginBottom: 2 }}>
                     <Text style={styles.languageName}>{item.name}</Text>
@@ -343,7 +379,8 @@ export function CvPercobaanPdfDocument({
 
             {showHobby && !!hobbyLines.length && (
               <View>
-                <Text style={[styles.sectionTitleSidebar, { marginTop: 14 }]}>HOBI</Text>
+                <View style={[styles.sidebarHr, styles.sidebarHrSpaced]} />
+                <Text style={styles.sectionTitleSidebar}>HOBI</Text>
                 {hobbyLines.slice(0, 6).map((line, index) => (
                   <View key={`hobby-${index}`} style={styles.bulletRow}>
                     <Text style={styles.bulletDot}>-</Text>
@@ -371,9 +408,11 @@ export function CvPercobaanPdfDocument({
               <Text style={styles.contactValue}>{email || "-"}</Text>
             </View>
 
+            <View style={styles.mainHeaderRule} />
             <Text style={[styles.sectionTitleMain, { color: accentColor || "#0EA5A6" }]}>Profil</Text>
             <Text style={styles.paragraph}>{summaryParagraph || "Profil belum diisi."}</Text>
 
+            <View style={styles.mainSectionRule} />
             <Text style={[styles.sectionTitleMain, { color: accentColor || "#0EA5A6" }]}>Pengalaman</Text>
             {experienceLines.length ? (
               experienceLines.map((line, index) => (
@@ -386,6 +425,7 @@ export function CvPercobaanPdfDocument({
               <Text style={styles.paragraph}>Pengalaman belum diisi.</Text>
             )}
 
+            <View style={styles.mainSectionRule} />
             <Text style={[styles.sectionTitleMain, { color: accentColor || "#0EA5A6" }]}>Pendidikan</Text>
             {educationLines.length ? (
               educationLines.map((line, index) => (
@@ -400,6 +440,7 @@ export function CvPercobaanPdfDocument({
 
             {showCertification && !!certificationLines.length && (
               <>
+                <View style={styles.mainSectionRule} />
                 <Text style={[styles.sectionTitleMain, { color: accentColor || "#0EA5A6" }]}>Sertifikasi</Text>
                 {certificationLines.map((line, index) => (
                   <View key={`cert-${index}`} style={styles.bulletRow}>

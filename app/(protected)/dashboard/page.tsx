@@ -30,7 +30,7 @@ const cards = [
   //   ring: "group-hover:ring-emerald-200/80",
   // },
   {
-    href: "/cv-percobaan",
+    href: "/cv",
     title: "CV Builder",
     desc: "Susun CV dengan bagian fleksibel, simpan, lalu unduh PDF.",
     icon: FileText,
