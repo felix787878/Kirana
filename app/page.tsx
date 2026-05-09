@@ -12,7 +12,7 @@ import cvLogo from "./cv_logo.png";
 import roadmapLogo from "./roadmap_logo.png";
 
 export default function LandingPage() {
-  const { user } = useAuth();
+  useAuth();
 
   useEffect(() => {
     const iconLinks = Array.from(
