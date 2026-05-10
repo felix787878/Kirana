@@ -1,8 +1,9 @@
 /* eslint-disable jsx-a11y/alt-text */
-import { Document, Font, Image, Page, Path, StyleSheet, Svg, Text, View } from "@react-pdf/renderer";
+import { Document, Font, Image, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
 import type { UserCvData } from "@/lib/user-document";
 import locationIcon from "@/app/Profil/location.png";
 import emailIcon from "@/app/Profil/email.png";
+import telephoneIcon from "@/app/Profil/telephone.png";
 
 Font.registerHyphenationCallback((word) => [word]);
 
@@ -222,21 +223,12 @@ function ContactIcon({
 }: {
   kind: "location" | "phone" | "mail";
 }) {
-  if (kind === "phone") {
-    return (
-      <Svg viewBox="0 0 24 24" style={{ width: 10, height: 10 }}>
-        <Path
-          d="M6.6 10.8a15.4 15.4 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.24 11.2 11.2 0 0 0 3.5.56 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.3a1 1 0 0 1 1 1c0 1.2.2 2.4.56 3.5a1 1 0 0 1-.24 1l-2 2.3Z"
-          fill="#334155"
-        />
-      </Svg>
-    );
-  }
-
   const src =
     kind === "location"
       ? locationIcon
-      : emailIcon;
+      : kind === "phone"
+        ? telephoneIcon
+        : emailIcon;
   const resolvedSrc =
     typeof src === "string"
       ? src

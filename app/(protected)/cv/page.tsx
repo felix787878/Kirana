@@ -16,6 +16,7 @@ import {
   CvPercobaanPdfDocument,
   mapCvToPercobaanPdfProps,
 } from "@/components/CvPercobaanPdfDocument";
+import { CvHistoryMiniPreview } from "@/components/CvHistoryMiniPreview";
 
 const PDFDownloadLink = dynamic(
   () => import("@react-pdf/renderer").then((m) => m.PDFDownloadLink),
@@ -337,25 +338,39 @@ export default function CvPercobaanPage() {
             {history.slice(0, MAX_HISTORY).map((item) => {
               const historyPhotoSrc = getHistoryPhotoSrc(item);
               const pdfPhotoSrc = typeof historyPhotoSrc === "string" ? historyPhotoSrc : historyPhotoSrc.src;
+              const pdfProps = getPercobaanPdfProps(item);
+              const accentHex =
+                COLOR_OPTIONS.find((opt) => opt.id === (item.accentId ?? "teal"))?.hex ?? "#0EA5A6";
+              const skillsLine =
+                (item.skillsText ?? "").trim() ||
+                (Array.isArray(pdfProps.skills) ? pdfProps.skills.join(", ") : "");
               return (
               <article
                 key={item.id}
                 className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
               >
-                <div className="flex h-52 items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100">
-                  <div className="relative h-40 w-28 overflow-hidden rounded-md border border-slate-300 bg-white shadow-sm">
-                    <Image
-                      src={historyPhotoSrc}
-                      alt={`Foto CV ${item.title}`}
-                      fill
-                      sizes="112px"
-                      className="object-cover"
-                      unoptimized
-                    />
-                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent p-2">
-                      <p className="line-clamp-1 text-[10px] font-semibold text-white">
-                        {item.title}
-                      </p>
+                <div className="relative h-52 w-full overflow-hidden bg-slate-100 [container-type:inline-size]">
+                  {/* Zoom isi lebar kartu; hanya separuh atas dokumen mini yang dipakai (sisanya terpotong). */}
+                  <div className="pointer-events-none absolute inset-0 overflow-hidden">
+                    <div
+                      className="absolute left-1/2 top-0 z-0 w-[272px] origin-top [transform:translateX(-50%)_scale(max(1,calc(100cqw/272px)))]"
+                    >
+                      <div className="h-[200px] w-[272px] overflow-hidden">
+                        <CvHistoryMiniPreview
+                          variant="snapshot"
+                          accentHex={accentHex}
+                          title={item.title}
+                          photoSrc={historyPhotoSrc}
+                          summaryText={pdfProps.summary ?? ""}
+                          skillsText={skillsLine}
+                          city={pdfProps.city}
+                          province={pdfProps.province}
+                          postalCode={pdfProps.postalCode}
+                          phone={pdfProps.phone}
+                          email={pdfProps.email}
+                          experienceText={pdfProps.experience}
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
