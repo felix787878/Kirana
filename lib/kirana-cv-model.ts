@@ -168,8 +168,8 @@ export function getDefaultCvDocument(): UserCvData {
     fullName: "Andi Pratama",
     headline: "Insinyur perangkat lunak · minat karier & pembelajaran",
     location: "Jakarta, Indonesia",
-    email: "andi.pratama@email.com",
-    phone: "+62 812 3456 7890",
+    email: "contoh@email.com",
+    phone: "+62 812 6099 1625",
     website: "https://kirana.app",
     photoUrl: "",
     socialNetworks: [

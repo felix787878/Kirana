@@ -77,7 +77,7 @@ export default function CvPercobaanTemplatePage() {
                   <br />
                   NURDIANSYAH
                 </h2>
-                <p className="mt-2 text-sm text-slate-600">Jakarta Selatan - +62 812-3456-7890 - jema@email.com</p>
+                <p className="mt-2 text-sm text-slate-600">Jakarta Selatan - +62 812 6099 1625 - contoh@email.com</p>
               </header>
 
               <div className="border-b-[2px] border-slate-900" aria-hidden />

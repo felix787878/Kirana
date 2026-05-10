@@ -3,7 +3,8 @@
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Mail, MapPin, Phone, PencilLine, UserRound, BriefcaseBusiness, GraduationCap, Wrench, ScrollText, LayoutList } from "lucide-react";
+import { Check, Mail, MapPin, Phone, UserRound, BriefcaseBusiness, GraduationCap, Wrench, ScrollText, LayoutList } from "lucide-react";
+import moveEditIcon from "@/app/Profil/move.png";
 import jemoPhoto from "@/app/Profil/jemo di TikTok.jpg";
 import cat67Photo from "@/app/Profil/67 cat.jpg";
 import animeArabPhoto from "@/app/Profil/cute anime Arab girl.jpg";
@@ -134,7 +135,7 @@ export default function CvPercobaanEditorPage() {
   const [city, setCity] = useState("Bekasi");
   const [province, setProvince] = useState("Jawa Barat");
   const [postalCode, setPostalCode] = useState("17148");
-  const [phone, setPhone] = useState("+62 812 3456 7890");
+  const [phone, setPhone] = useState("+62 812 6099 1625");
   const [email, setEmail] = useState("contoh@email.com");
   const [experienceText, setExperienceText] = useState("");
   const [educationText, setEducationText] = useState("");
@@ -215,7 +216,7 @@ export default function CvPercobaanEditorPage() {
               setCity(target.city || "Bekasi");
               setProvince(target.province || "Jawa Barat");
               setPostalCode(target.postalCode || "17148");
-              setPhone(target.phone || cv.phone || "+62 812 3456 7890");
+              setPhone(target.phone || cv.phone || "+62 812 6099 1625");
               setEmail(target.email || cv.email || "contoh@email.com");
               setSummaryText(target.summaryText || "");
               setSkillsText(target.skillsText || "");
@@ -388,14 +389,86 @@ export default function CvPercobaanEditorPage() {
     router.push("/cv");
   }
 
+  /** Isi teks tanpa awalan bullet umum (untuk cegah duplikat dari tombol +). */
+  function stripLeadingBullet(line: string): string {
+    return line.replace(/^\s*[•\*\-–]\s*/, "").trim();
+  }
+
   function appendLine(current: string, text: string) {
-    return current.trim() ? `${current}\n• ${text}` : `• ${text}`;
+    const next = text.trim();
+    if (!next) return current;
+    const existing = current
+      .split("\n")
+      .map(stripLeadingBullet)
+      .filter(Boolean);
+    if (existing.includes(next)) return current;
+    return current.trim() ? `${current}\n• ${next}` : `• ${next}`;
   }
 
   function appendPlainLine(current: string, text: string) {
     const next = text.trim();
     if (!next) return current;
+    const existing = current
+      .split("\n")
+      .map((l) => l.trim())
+      .filter(Boolean);
+    if (existing.includes(next)) return current;
     return current.trim() ? `${current}\n${next}` : next;
+  }
+
+  function hasBulletSuggestion(current: string, text: string): boolean {
+    const next = text.trim();
+    if (!next) return false;
+    const existing = current
+      .split("\n")
+      .map(stripLeadingBullet)
+      .filter(Boolean);
+    return existing.includes(next);
+  }
+
+  function hasPlainSuggestion(current: string, text: string): boolean {
+    const next = text.trim();
+    if (!next) return false;
+    const existing = current
+      .split("\n")
+      .map((l) => l.trim())
+      .filter(Boolean);
+    return existing.includes(next);
+  }
+
+  function hasSkillSuggestion(skills: string, item: string): boolean {
+    return skills
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean)
+      .some((p) => p === item);
+  }
+
+  function removeBulletLine(current: string, text: string): string {
+    const next = text.trim();
+    if (!next) return current;
+    const filtered = current
+      .split("\n")
+      .filter((line) => stripLeadingBullet(line) !== next);
+    return filtered.join("\n").trim();
+  }
+
+  function removePlainLine(current: string, text: string): string {
+    const next = text.trim();
+    if (!next) return current;
+    const filtered = current
+      .split("\n")
+      .filter((line) => line.trim() !== next);
+    return filtered.join("\n").trim();
+  }
+
+  function removeSkill(skills: string, item: string): string {
+    return skills
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean)
+      .filter((p) => p !== item)
+      .join(", ");
   }
 
   function toggleExtraSection(id: string) {
@@ -582,10 +655,17 @@ export default function CvPercobaanEditorPage() {
                     }}
                   />
                   <div
-                    className="pointer-events-none absolute inset-x-0 bottom-0 top-[42%] flex items-end justify-center rounded-b-full bg-black/40 pb-1"
+                    className="pointer-events-none absolute inset-x-0 bottom-0 top-[72%] flex items-center justify-center rounded-b-full bg-black/40 pb-1 pt-0.5"
                     aria-hidden
                   >
-                    <PencilLine className="h-3.5 w-3.5 text-white drop-shadow" strokeWidth={2.25} />
+                    <Image
+                      src={moveEditIcon}
+                      alt=""
+                      width={28}
+                      height={28}
+                      className="h-3.5 w-3.5 object-contain opacity-[0.95] drop-shadow-sm"
+                      unoptimized
+                    />
                   </div>
                 </div>
               </div>
@@ -708,18 +788,27 @@ export default function CvPercobaanEditorPage() {
                 <div className="rounded-xl border border-slate-200 p-3">
                   <p className="text-xs font-semibold text-slate-700">Foto profil</p>
                   <div className="mt-2 flex flex-wrap gap-2">
-                    {PRESET_PHOTOS.map((photo) => (
+                    {PRESET_PHOTOS.map((photo, presetIdx) => (
                       <button
                         key={photo.id}
                         type="button"
+                        aria-label={`Pilih foto profil, opsi ${presetIdx + 1}`}
                         onClick={() => {
                           setSelectedPresetId(photo.id);
                           setUploadedPhotoDataUrl(null);
                         }}
-                        className={`overflow-hidden rounded-lg border-2 ${selectedPresetId === photo.id && !uploadedPhotoDataUrl ? "border-indigo-500" : "border-slate-200"}`}
-                        title={photo.label}
+                        onContextMenu={(e) => e.preventDefault()}
+                        className={`select-none [-webkit-touch-callout:none] overflow-hidden rounded-lg border-2 [-webkit-user-drag:none] ${selectedPresetId === photo.id && !uploadedPhotoDataUrl ? "border-indigo-500" : "border-slate-200"}`}
                       >
-                        <Image src={photo.src} alt={photo.label} width={48} height={48} className="h-12 w-12 object-cover" />
+                        <Image
+                          src={photo.src}
+                          alt=""
+                          width={48}
+                          height={48}
+                          draggable={false}
+                          className="pointer-events-none h-12 w-12 object-cover"
+                          onDragStart={(e) => e.preventDefault()}
+                        />
                       </button>
                     ))}
                   </div>
@@ -770,11 +859,42 @@ export default function CvPercobaanEditorPage() {
             {currentStep.id === "experience" ? (
               <div className="space-y-3">
                 <div className="space-y-2">
-                  {EXPERIENCE_SUGGESTIONS.map((item) => (
-                    <button key={item} type="button" onClick={() => setExperienceText((prev) => appendLine(prev, item))} className="inline-flex w-full items-center rounded-full border border-slate-300 px-3 py-2 text-left text-xs text-slate-700 hover:bg-slate-50">
-                      + {item}
-                    </button>
-                  ))}
+                  {EXPERIENCE_SUGGESTIONS.map((item) => {
+                    const used = hasBulletSuggestion(experienceText, item);
+                    return (
+                      <button
+                        key={item}
+                        type="button"
+                        aria-pressed={used}
+                        title={
+                          used
+                            ? "Klik lagi untuk menghapus dari pengalaman"
+                            : "Tambahkan ke pengalaman"
+                        }
+                        onClick={() =>
+                          setExperienceText((prev) =>
+                            hasBulletSuggestion(prev, item)
+                              ? removeBulletLine(prev, item)
+                              : appendLine(prev, item)
+                          )
+                        }
+                        className={`inline-flex w-full items-center gap-2 rounded-full border px-3 py-2 text-left text-xs transition ${
+                          used
+                            ? "cursor-pointer border-teal-200 bg-teal-50 text-teal-900 shadow-[inset_0_1px_2px_rgba(15,118,110,0.06)] ring-1 ring-teal-100 hover:bg-teal-100/90"
+                            : "border-slate-300 text-slate-700 hover:bg-slate-50"
+                        }`}
+                      >
+                        {used ? (
+                          <Check className="h-3.5 w-3.5 shrink-0 text-teal-600" strokeWidth={2.5} aria-hidden />
+                        ) : (
+                          <span className="shrink-0 font-semibold text-slate-400" aria-hidden>
+                            +
+                          </span>
+                        )}
+                        <span className="min-w-0 flex-1">{item}</span>
+                      </button>
+                    );
+                  })}
                 </div>
                 <label className="space-y-1">
                   <span className="text-xs font-semibold text-slate-600">Pengalaman kerja</span>
@@ -791,15 +911,42 @@ export default function CvPercobaanEditorPage() {
             {currentStep.id === "skills" ? (
               <div className="space-y-3">
                 <div className="flex flex-wrap gap-2">
-                  {SKILLS_SUGGESTIONS.map((item) => (
-                    <button key={item} type="button" onClick={() => setSkillsText((prev) => {
-                      const current = prev.split(",").map((s) => s.trim()).filter(Boolean);
-                      if (current.includes(item)) return prev;
-                      return current.length ? `${current.join(", ")}, ${item}` : item;
-                    })} className="rounded-full border border-slate-300 px-3 py-1 text-xs text-slate-700 hover:bg-slate-50">
-                      + {item}
-                    </button>
-                  ))}
+                  {SKILLS_SUGGESTIONS.map((item) => {
+                    const used = hasSkillSuggestion(skillsText, item);
+                    return (
+                      <button
+                        key={item}
+                        type="button"
+                        aria-pressed={used}
+                        title={
+                          used
+                            ? "Klik lagi untuk hapus dari keterampilan"
+                            : "Tambahkan ke keterampilan"
+                        }
+                        onClick={() =>
+                          setSkillsText((prev) => {
+                            if (hasSkillSuggestion(prev, item)) return removeSkill(prev, item);
+                            const parts = prev.split(",").map((s) => s.trim()).filter(Boolean);
+                            return parts.length ? `${parts.join(", ")}, ${item}` : item;
+                          })
+                        }
+                        className={`inline-flex max-w-full items-center gap-1.5 rounded-full border px-3 py-1 text-xs transition ${
+                          used
+                            ? "cursor-pointer border-teal-200 bg-teal-50 text-teal-900 ring-1 ring-teal-100 hover:bg-teal-100/90"
+                            : "border-slate-300 text-slate-700 hover:bg-slate-50"
+                        }`}
+                      >
+                        {used ? (
+                          <Check className="h-3 w-3 shrink-0 text-teal-600" strokeWidth={2.5} aria-hidden />
+                        ) : (
+                          <span className="shrink-0 font-semibold text-slate-400" aria-hidden>
+                            +
+                          </span>
+                        )}
+                        <span className="min-w-0 truncate">{item}</span>
+                      </button>
+                    );
+                  })}
                 </div>
                 <label className="space-y-1">
                   <span className="text-xs font-semibold text-slate-600">Keterampilan (pisahkan dengan koma)</span>
@@ -810,11 +957,42 @@ export default function CvPercobaanEditorPage() {
             {currentStep.id === "summary" ? (
               <div className="space-y-3">
                 <div className="space-y-2">
-                  {PROFILE_SUGGESTIONS.map((item) => (
-                    <button key={item} type="button" onClick={() => setSummaryText((prev) => appendPlainLine(prev, item))} className="inline-flex w-full items-center rounded-full border border-slate-300 px-3 py-2 text-left text-xs text-slate-700 hover:bg-slate-50">
-                      + {item}
-                    </button>
-                  ))}
+                  {PROFILE_SUGGESTIONS.map((item) => {
+                    const used = hasPlainSuggestion(summaryText, item);
+                    return (
+                      <button
+                        key={item}
+                        type="button"
+                        aria-pressed={used}
+                        title={
+                          used
+                            ? "Klik lagi untuk menghapus dari profil"
+                            : "Tambahkan ke profil"
+                        }
+                        onClick={() =>
+                          setSummaryText((prev) =>
+                            hasPlainSuggestion(prev, item)
+                              ? removePlainLine(prev, item)
+                              : appendPlainLine(prev, item)
+                          )
+                        }
+                        className={`inline-flex w-full items-center gap-2 rounded-full border px-3 py-2 text-left text-xs transition ${
+                          used
+                            ? "cursor-pointer border-teal-200 bg-teal-50 text-teal-900 shadow-[inset_0_1px_2px_rgba(15,118,110,0.06)] ring-1 ring-teal-100 hover:bg-teal-100/90"
+                            : "border-slate-300 text-slate-700 hover:bg-slate-50"
+                        }`}
+                      >
+                        {used ? (
+                          <Check className="h-3.5 w-3.5 shrink-0 text-teal-600" strokeWidth={2.5} aria-hidden />
+                        ) : (
+                          <span className="shrink-0 font-semibold text-slate-400" aria-hidden>
+                            +
+                          </span>
+                        )}
+                        <span className="min-w-0 flex-1">{item}</span>
+                      </button>
+                    );
+                  })}
                 </div>
                 <label className="space-y-1">
                   <span className="text-xs font-semibold text-slate-600">Profil</span>
@@ -887,11 +1065,42 @@ export default function CvPercobaanEditorPage() {
                 {extraSections.includes("sertifikasi") ? (
                   <div className="space-y-2">
                     <div className="flex flex-wrap gap-2">
-                      {CERTIFICATION_SUGGESTIONS.map((item) => (
-                        <button key={item} type="button" onClick={() => setCertificationText((prev) => appendLine(prev, item))} className="rounded-full border border-slate-300 px-3 py-1 text-xs text-slate-700 hover:bg-slate-50">
-                          + {item}
-                        </button>
-                      ))}
+                      {CERTIFICATION_SUGGESTIONS.map((item) => {
+                        const used = hasBulletSuggestion(certificationText, item);
+                        return (
+                          <button
+                            key={item}
+                            type="button"
+                            aria-pressed={used}
+                            title={
+                              used
+                                ? "Klik lagi untuk menghapus dari sertifikasi"
+                                : "Tambahkan ke sertifikasi"
+                            }
+                            onClick={() =>
+                              setCertificationText((prev) =>
+                                hasBulletSuggestion(prev, item)
+                                  ? removeBulletLine(prev, item)
+                                  : appendLine(prev, item)
+                              )
+                            }
+                            className={`inline-flex max-w-full items-center gap-1.5 rounded-full border px-3 py-1 text-xs transition ${
+                              used
+                                ? "cursor-pointer border-teal-200 bg-teal-50 text-teal-900 ring-1 ring-teal-100 hover:bg-teal-100/90"
+                                : "border-slate-300 text-slate-700 hover:bg-slate-50"
+                            }`}
+                          >
+                            {used ? (
+                              <Check className="h-3 w-3 shrink-0 text-teal-600" strokeWidth={2.5} aria-hidden />
+                            ) : (
+                              <span className="shrink-0 font-semibold text-slate-400" aria-hidden>
+                                +
+                              </span>
+                            )}
+                            <span className="min-w-0 truncate">{item}</span>
+                          </button>
+                        );
+                      })}
                     </div>
                     <label className="space-y-1">
                       <span className="text-xs font-semibold text-slate-600">Sertifikasi</span>
@@ -903,16 +1112,42 @@ export default function CvPercobaanEditorPage() {
                 {extraSections.includes("hobi") ? (
                   <div className="space-y-2">
                     <div className="flex flex-wrap gap-2">
-                      {HOBBY_SUGGESTIONS.map((item) => (
-                        <button
-                          key={item}
-                          type="button"
-                          onClick={() => setHobbyText((prev) => appendPlainLine(prev, item))}
-                          className="rounded-full border border-slate-300 px-3 py-1 text-xs text-slate-700 hover:bg-slate-50"
-                        >
-                          + {item}
-                        </button>
-                      ))}
+                      {HOBBY_SUGGESTIONS.map((item) => {
+                        const used = hasPlainSuggestion(hobbyText, item);
+                        return (
+                          <button
+                            key={item}
+                            type="button"
+                            aria-pressed={used}
+                            title={
+                              used
+                                ? "Klik lagi untuk menghapus dari hobi"
+                                : "Tambahkan ke hobi"
+                            }
+                            onClick={() =>
+                              setHobbyText((prev) =>
+                                hasPlainSuggestion(prev, item)
+                                  ? removePlainLine(prev, item)
+                                  : appendPlainLine(prev, item)
+                              )
+                            }
+                            className={`inline-flex max-w-full items-center gap-1.5 rounded-full border px-3 py-1 text-xs transition ${
+                              used
+                                ? "cursor-pointer border-teal-200 bg-teal-50 text-teal-900 ring-1 ring-teal-100 hover:bg-teal-100/90"
+                                : "border-slate-300 text-slate-700 hover:bg-slate-50"
+                            }`}
+                          >
+                            {used ? (
+                              <Check className="h-3 w-3 shrink-0 text-teal-600" strokeWidth={2.5} aria-hidden />
+                            ) : (
+                              <span className="shrink-0 font-semibold text-slate-400" aria-hidden>
+                                +
+                              </span>
+                            )}
+                            <span className="min-w-0 truncate">{item}</span>
+                          </button>
+                        );
+                      })}
                     </div>
                     <label className="space-y-1">
                       <span className="text-xs font-semibold text-slate-600">Hobi</span>
